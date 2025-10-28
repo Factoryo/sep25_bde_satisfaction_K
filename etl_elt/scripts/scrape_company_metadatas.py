@@ -44,13 +44,12 @@ def parse_company_data(company_data_html):
 
     company_details_data = company_json_data["props"]["pageProps"]["businessUnit"]
 
-    categories = ""
-
-    for category in company_details_data['categories']:
-        if categories == "":
-            categories = category["name"]
-        else:
-            categories += "\n" + category["name"]
+    if len(company_details_data['categories']) == 1:
+        category = company_details_data['categories'][0]["name"]
+    else:
+        for item in company_details_data['categories']:
+            if item['isPrimary'] is True:
+                category = item["name"]
 
     company_dict_data = {
                         'id': company_details_data['id'],
@@ -59,7 +58,7 @@ def parse_company_data(company_data_html):
                         'trustScore': company_details_data['trustScore'],
                         'websiteUrl': company_details_data['websiteUrl'],
                         'stars': company_details_data['stars'],
-                        'category': categories,
+                        'category': category,
                         'email': company_details_data['contactInfo']['email'],
                         'address': company_details_data['contactInfo']['address'],
                         'city': company_details_data['contactInfo']['city'],
