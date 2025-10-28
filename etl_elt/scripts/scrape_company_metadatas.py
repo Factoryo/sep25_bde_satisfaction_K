@@ -65,16 +65,11 @@ def parse_company_data(company_data_html):
                         'country': company_details_data['contactInfo']['country'],
                         'phone': company_details_data['contactInfo']['phone'],
                         'zipCode': company_details_data['contactInfo']['zipCode'],
-                        'five-star-rating-percent': soup.find("label", attrs={"data-star-rating": "five"})
-                                                        .find_next("p", attrs={"data-rating-distribution-row-percentage-typography": "true"}).text,
-                        'four-star-rating-percent': soup.find("label", attrs={"data-star-rating": "four"})
-                                                        .find_next("p", attrs={"data-rating-distribution-row-percentage-typography": "true"}).text,
-                        'three-star-rating-percent': soup.find("label", attrs={"data-star-rating": "three"})
-                                                         .find_next("p", attrs={"data-rating-distribution-row-percentage-typography": "true"}).text,
-                        'two-star-rating-percent': soup.find("label", attrs={"data-star-rating": "two"})
-                                                       .find_next("p", attrs={"data-rating-distribution-row-percentage-typography": "true"}).text,
-                        'one-star-rating-percent': soup.find("label", attrs={"data-star-rating": "one"})
-                                                       .find_next("p", attrs={"data-rating-distribution-row-percentage-typography": "true"}).text
+                        'five_star_rating_count': soup.find("label", attrs={"data-star-rating": "five"}).attrs["title"].split(" of ")[0].replace(",",""),
+                        'four_star_rating_count': soup.find("label", attrs={"data-star-rating": "four"}).attrs["title"].split(" of ")[0].replace(",",""),
+                        'three_star_rating_count': soup.find("label", attrs={"data-star-rating": "three"}).attrs["title"].split(" of ")[0].replace(",",""),
+                        'two_star_rating_count': soup.find("label", attrs={"data-star-rating": "two"}).attrs["title"].split(" of ")[0].replace(",",""),
+                        'one_star_rating_count': soup.find("label", attrs={"data-star-rating": "one"}).attrs["title"].split(" of ")[0].replace(",",""),
                         }
 
     return company_dict_data
