@@ -6,3 +6,6 @@
 
 # Fichiers contenus dans les volumes de données sql, elastic, etc...
 volumes/etl_elt/*
+
+# fichiers cache de python
+*.pyc
