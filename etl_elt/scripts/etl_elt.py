@@ -56,9 +56,10 @@ def main_etl_elt():
     conn.close()
 
     # Petit délai pour éviter la fermeture immédiate du conteneur Docker
-    time.sleep(5)
+    #time.sleep(5)
 
 
 if __name__ == "__main__":
     print("Démarrage du script ETL...")
     main_etl_elt()
+    print("Processus ETL/ELT terminés")

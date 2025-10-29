@@ -121,33 +121,77 @@ def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
         # step 1: insert category in Category table if not already exists
         sql_insert_request = """
                              INSERT INTO Category (category_name)
-                             VALUES ('{}')
+                             VALUES ('{category}')
                              ON CONFLICT (category_name) DO NOTHING;
-                             """.format(company.category)
+                             """.format(
+                                        category=company.category
+                                        )
+
         cur.execute(sql_insert_request)
 
         # step 2: insert entreprise in Entreprise table if not already exists
         sql_insert_request = """
                              INSERT INTO Entreprise (entreprise_id, entreprise_name, profileImageUrl, mail, phone, web_site, category_id)
-                             VALUES ('{}','{}','{}','{}','{}','{}',(select category_id from Category where category_name = '{}'))
-                             ON CONFLICT (entreprise_id) DO NOTHING;
-                             """.format(company.id, company.displayName, company.profileImageUrl, company.email, company.phone, company.websiteUrl, company.category)
+                             VALUES ('{entreprise_id}','{entreprise_name}','{profileImageUrl}','{mail}','{phone}','{web_site}',(select category_id from Category where category_name = '{category}'))
+                             ON CONFLICT (entreprise_id) DO
+                             UPDATE
+                             SET profileImageUrl = EXCLUDED.profileImageUrl, 
+                                 mail = EXCLUDED.mail, 
+                                 phone = EXCLUDED.phone, 
+                                 web_site = EXCLUDED.web_site,
+                                 category_id = EXCLUDED.category_id;
+                             """.format(
+                                        entreprise_id = company.id, 
+                                        entreprise_name = company.displayName, 
+                                        profileImageUrl = company.profileImageUrl, 
+                                        mail = company.email, 
+                                        phone = company.phone, 
+                                        web_site = company.websiteUrl, 
+                                        category = company.category
+                                        )
+        
         cur.execute(sql_insert_request)
 
         # step 3: insert entreprise address details in Address table
         sql_insert_request = """
                              INSERT INTO Address (entreprise_id, street, zip_code, city, country)
-                             VALUES ('{}','{}','{}','{}','{}')
-                             ON CONFLICT (entreprise_id) DO NOTHING;
-                             """.format(company.id, company.address, company.zipCode, company.phone, company.country)
+                             VALUES ('{entreprise_id}','{street}','{zip_code}','{city}','{country}')
+                             ON CONFLICT (entreprise_id) DO 
+                             UPDATE
+                             SET street = EXCLUDED.street, 
+                                 zip_code = EXCLUDED.zip_code, 
+                                 city = EXCLUDED.city, 
+                                 country = EXCLUDED.country;
+                             """.format(
+                                        entreprise_id = company.id, 
+                                        street = company.address, 
+                                        zip_code = company.zipCode, 
+                                        city = company.phone, 
+                                        country = company.country
+                                        )
         cur.execute(sql_insert_request)
 
         # step 4: insert entreprise rating details in rating table
         sql_insert_request = """
                              INSERT INTO Rating (entreprise_id, one_star, two_star, three_star, four_star, five_star, trustScore)
-                             VALUES ('{}','{}','{}','{}','{}','{}','{}')
-                             ON CONFLICT (entreprise_id) DO NOTHING;
-                             """.format(company.id, company.one_star_rating_count, company.two_star_rating_count, company.three_star_rating_count, company.four_star_rating_count, company.five_star_rating_count, company.trustScore)
+                             VALUES ('{entreprise_id}','{one_star}','{two_star}','{three_star}','{four_star}','{five_star}','{trustScore}')
+                             ON CONFLICT (entreprise_id) DO
+                             UPDATE
+                             SET one_star = EXCLUDED.one_star, 
+                                 two_star = EXCLUDED.two_star, 
+                                 three_star = EXCLUDED.three_star, 
+                                 four_star = EXCLUDED.four_star,
+                                 five_star = EXCLUDED.five_star,
+                                 trustScore = EXCLUDED.trustScore;
+                             """.format(
+                                        entreprise_id = company.id, 
+                                        one_star = company.one_star_rating_count, 
+                                        two_star = company.two_star_rating_count, 
+                                        three_star = company.three_star_rating_count, 
+                                        four_star = company.four_star_rating_count, 
+                                        five_star = company.five_star_rating_count, 
+                                        trustScore = company.trustScore
+                                        )
         cur.execute(sql_insert_request)
     
     conn.commit()
