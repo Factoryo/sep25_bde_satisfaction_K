@@ -6,6 +6,11 @@ WORKDIR /app
 
 # Copier les dépendances
 COPY requirements.txt .
+
+# Pré-requis pour pouvoir installer psycog2
+RUN apt-get update && apt-get -y install libpq-dev gcc
+
+# Installation des libraires python
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copier tout le code du projet

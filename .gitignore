@@ -1,11 +1,11 @@
 # Fichiers environnement (sensibles)
-.env
+*.env
 
 # Fichier générer par macOS
 .DS_Store
 
 # Fichiers contenus dans les volumes de données sql, elastic, etc...
-volumes/etl_elt/*
+volumes/*
 
 # fichiers cache de python
 *.pyc

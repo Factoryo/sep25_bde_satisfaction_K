@@ -54,6 +54,7 @@ def parse_company_data(company_data_html):
     company_dict_data = {
                         'id': company_details_data['id'],
                         'displayName': company_details_data['displayName'],
+                        'profileImageUrl': company_details_data['profileImageUrl'],
                         'numberOfReviews': company_details_data['numberOfReviews'],
                         'trustScore': company_details_data['trustScore'],
                         'websiteUrl': company_details_data['websiteUrl'],
@@ -100,6 +101,57 @@ def create_company_data_dataframe(company_list):
     temp_df = temp_df.set_index('id')
 
     return temp_df
+
+
+def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
+    """
+    Launch information about companies from csv file in a dataframe.
+    Stores this df in Postgresql server
+
+    Args:
+        csv_file (str): path to CSV file
+        conn: db connection object
+    Returns:
+        nothing
+    """
+    companies_df = pd.read_csv(csv_file, dtype='str')
+    cur= conn.cursor()
+
+    for company in companies_df.itertuples(index=False):
+        # step 1: insert category in Category table if not already exists
+        sql_insert_request = """
+                             INSERT INTO Category (category_name)
+                             VALUES ('{}')
+                             ON CONFLICT (category_name) DO NOTHING;
+                             """.format(company.category)
+        cur.execute(sql_insert_request)
+
+        # step 2: insert entreprise in Entreprise table if not already exists
+        sql_insert_request = """
+                             INSERT INTO Entreprise (entreprise_id, entreprise_name, profileImageUrl, mail, phone, web_site, category_id)
+                             VALUES ('{}','{}','{}','{}','{}','{}',(select category_id from Category where category_name = '{}'))
+                             ON CONFLICT (entreprise_id) DO NOTHING;
+                             """.format(company.id, company.displayName, company.profileImageUrl, company.email, company.phone, company.websiteUrl, company.category)
+        cur.execute(sql_insert_request)
+
+        # step 3: insert entreprise address details in Address table
+        sql_insert_request = """
+                             INSERT INTO Address (entreprise_id, street, zip_code, city, country)
+                             VALUES ('{}','{}','{}','{}','{}')
+                             ON CONFLICT (entreprise_id) DO NOTHING;
+                             """.format(company.id, company.address, company.zipCode, company.phone, company.country)
+        cur.execute(sql_insert_request)
+
+        # step 4: insert entreprise rating details in rating table
+        sql_insert_request = """
+                             INSERT INTO Rating (entreprise_id, one_star, two_star, three_star, four_star, five_star, trustScore)
+                             VALUES ('{}','{}','{}','{}','{}','{}','{}')
+                             ON CONFLICT (entreprise_id) DO NOTHING;
+                             """.format(company.id, company.one_star_rating_count, company.two_star_rating_count, company.three_star_rating_count, company.four_star_rating_count, company.five_star_rating_count, company.trustScore)
+        cur.execute(sql_insert_request)
+    
+    conn.commit()
+    cur.close()
 
 
 def test_get_company_data_from_trustpilot():

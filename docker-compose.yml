@@ -1,11 +1,32 @@
+name: projet_satisfaction_client
 services:
   etl_elt:
     container_name: satisfaction_client_etl_elt
 
     build: ./etl_elt/.
 
+    environment:
+      - POSTGRES_SRV_ADDRESS=${postgres_srv_address}
+      - POSTGRES_SRV_PORT=${postgres_srv_port}
+      - POSTGRES_DB=${postgres_srv_database}
+      - POSTGRES_USER=${postgres_srv_user}
+      - POSTGRES_PASSWORD=${postgres_srv_password}
+
     volumes:
       - ./etl_elt/scripts:/app/scripts
       - ./volumes/etl_elt:/app/extracts
 
     command: python /app/scripts/etl_elt.py
+
+  db:
+    container_name: pg_container
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${postgres_srv_user}
+      POSTGRES_PASSWORD: ${postgres_srv_password}
+      POSTGRES_DB: ${postgres_srv_database}
+    ports:
+      - "${postgres_srv_port}:${postgres_srv_port}"
+    volumes:
+      - ./volumes/postgresql:/var/lib/postgresql/data
