@@ -190,6 +190,10 @@ if __name__ == "__main__":
 
 Grâce au montage de volume défini dans `docker-compose.yml`, toute modification locale dans ces fichiers est immédiatement prise en compte par le conteneur. Il n’est donc **pas nécessaire de reconstruire l’image** pour tester de nouvelles fonctions.
 
+## Scraping des commentaires :
+
+python src/scripts/mass_scraping.py
+
 > 💡 **Astuce :** Assurez-vous que chaque module Python contient un fichier `__init__.py` (même vide) pour que Python reconnaisse le dossier comme un package importable.
 
 ---
