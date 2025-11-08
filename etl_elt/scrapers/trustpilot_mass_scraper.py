@@ -11,11 +11,13 @@ from datetime import datetime
 import random
 
 class TrustpilotMassScraper:
-    def __init__(self, delay: float = 2.0, max_pages_per_company: int = 100, reviews_per_company: int = 5000):
+    def __init__(self, delay: float = 2.0, max_pages_per_company: int = 1000, reviews_per_company: int = 10000):
         self.delay = delay
         self.max_pages_per_company = max_pages_per_company
         self.reviews_per_company = reviews_per_company
         self.session = requests.Session()
+        
+        # Headers mis à jour avec Referer
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -23,7 +25,19 @@ class TrustpilotMassScraper:
             'Accept-Encoding': 'gzip, deflate, br',
             'Connection': 'keep-alive',
             'Upgrade-Insecure-Requests': '1',
+            'Referer': 'https://fr.trustpilot.com/',
         })
+        
+        # AJOUT DES COOKIES DE SESSION POUR DÉPASSER LA LIMITE DES 10 PAGES
+        trustpilot_cookies = {
+            'TP.uuid': '098be84b-c197-4e9e-8713-1a4b906899ad',
+            'jwt': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb25zdW1lcklkIjoiNjhlZmFjNjFmNTI5Zjk4MmUzZjg5YWU1IiwiaGFzQWNjZXB0ZWRUZXJtcyI6ZmFsc2UsImlzQmxvY2tlZEZvclJlcG9ydGluZyI6ZmFsc2UsImFjY2Vzc1Rva2VuIjoid3ZUR3A2emY0aDluTERMb2RzdnFiQzV4WWpVMSIsImF1dGhlbnRpY2F0aW9uU291cmNlIjoiZ29vZ2xlIiwiaWF0IjoxNzYwNTM3Njk4LCJleHAiOjE3NjgzMTM2OTh9.UvwVAP2HWCAuR4d9EE8Q0YHaNnYFXb8zK_AnS56yV3M'
+        }
+        
+        # Application des cookies à la session
+        for cookie_name, cookie_value in trustpilot_cookies.items():
+            self.session.cookies.set(cookie_name, cookie_value, domain='.trustpilot.com')
+        
         self.logger = logging.getLogger(__name__)
 
         self.data_dir = "data"
@@ -32,6 +46,93 @@ class TrustpilotMassScraper:
         
         for directory in [self.data_dir, self.companies_dir, self.progress_dir]:
             os.makedirs(directory, exist_ok=True)
+
+    def extract_from_next_data(self, soup: BeautifulSoup, company_name: str) -> Dict:
+        """Extrait les données depuis la balise __NEXT_DATA__"""
+        try:
+            next_data_script = soup.find('script', id='__NEXT_DATA__')
+            if not next_data_script:
+                self.logger.warning("Balise __NEXT_DATA__ non trouvée")
+                return {'reviews': [], 'company_info': {}}
+            
+            data = json.loads(next_data_script.string)
+            return self.parse_next_data(data, company_name)
+            
+        except Exception as e:
+            self.logger.error(f"Erreur extraction NEXT_DATA: {e}")
+            return {'reviews': [], 'company_info': {}}
+
+    def parse_next_data(self, data: Dict, company_name: str) -> Dict:
+        """Parse la structure NEXT_DATA"""
+        reviews = []
+        company_info = {}
+        
+        try:
+            # Extraction des reviews
+            reviews_data = data.get('props', {}).get('pageProps', {}).get('reviews', [])
+            for review_data in reviews_data:
+                review = self.parse_review_json(review_data, company_name)
+                if review:
+                    reviews.append(review)
+            
+            # Extraction infos entreprise
+            business_unit = data.get('props', {}).get('pageProps', {}).get('businessUnit', {})
+            company_info = self.parse_company_info_json(business_unit, company_name)
+            
+        except Exception as e:
+            self.logger.error(f"Erreur parsing NEXT_DATA: {e}")
+            
+        return {'reviews': reviews, 'company_info': company_info}
+
+    def parse_review_json(self, review_data: Dict, company_name: str) -> Optional[Dict]:
+        """Parse une review depuis le JSON"""
+        try:
+            consumer = review_data.get('consumer', {})
+            dates = review_data.get('dates', {})
+            company_reply = review_data.get('companyReply')
+            
+            review = {
+                'company_name': company_name,
+                'author': consumer.get('displayName', ''),
+                'author_review_count': consumer.get('numberOfReviews', 0),
+                'date_absolute': dates.get('publishedDate', ''),
+                'rating': review_data.get('rating', 0),
+                'title': review_data.get('title', ''),
+                'content': review_data.get('text', ''),
+                'review_id': review_data.get('id', ''),
+                'review_link': f"https://fr.trustpilot.com/reviews/{review_data.get('id', '')}",
+                'verified': review_data.get('verified', False),
+                'company_response': {
+                    'exists': company_reply is not None,
+                    'date': company_reply.get('createdAt', '') if company_reply else '',
+                    'content': company_reply.get('text', '') if company_reply else ''
+                },
+                'scraped_at': datetime.now().isoformat()
+            }
+            
+            return review
+            
+        except Exception as e:
+            self.logger.debug(f"Erreur parsing review JSON: {e}")
+            return None
+
+    def parse_company_info_json(self, business_unit: Dict, company_name: str) -> Dict:
+        """Parse les infos entreprise depuis le JSON"""
+        company_info = {
+            'company_name': company_name,
+            'trustscore': str(business_unit.get('trustScore', '')),
+            'review_count': str(business_unit.get('numberOfReviews', {}).get('total', '')),
+            'website': business_unit.get('websiteUrl', ''),
+            'business_unit_id': business_unit.get('id', ''),
+            'scraped_at': datetime.now().isoformat()
+        }
+        return company_info
+
+    def build_url(self, company_name: str, page: int) -> str:
+        """Construit l'URL avec fr.trustpilot.com"""
+        company_clean = f"www.{company_name}" if not company_name.startswith('www.') else company_name
+        base_url = f"https://fr.trustpilot.com/review/{company_clean}"
+        return f"{base_url}?page={page}" if page > 1 else base_url
 
     def save_progress(self, company: str, current_page: int, total_reviews: int):
         """Sauvegarde la progression du scraping"""
@@ -84,102 +185,14 @@ class TrustpilotMassScraper:
         
         self.logger.info(f" Lot {batch_number} sauvegardé: {len(reviews)} reviews")
 
-    def extract_reviews_from_page(self, soup: BeautifulSoup, company_name: str) -> List[Dict]:
-        """Extrait les reviews d'une page"""
-        reviews = []
-        review_elements = soup.select('article.styles_reviewCard__meSdm')
-        
-        for element in review_elements:
-            try:
-                review = self.parse_review_element(element, company_name)
-                if review and review.get('author'):
-                    reviews.append(review)
-            except Exception as e:
-                self.logger.debug(f"Erreur parsing review: {e}")
-                continue
-        
-        return reviews
-
-    def parse_review_element(self, element, company_name: str) -> Dict:
-        """Parse un élément de review"""
-        review = {
-            'company_name': company_name,
-            'author': '',
-            'author_review_count': '',
-            'date_absolute': '',
-            'date_relative': '',
-            'rating': 0,
-            'title': '',
-            'content': '',
-            'review_link': '',
-            'company_response': {
-                'exists': False,
-                'date': '',
-                'content': ''
-            },
-            'scraped_at': datetime.now().isoformat()
-        }
-        
-        author_element = element.select_one('a[data-consumer-profile-link] span.CDS_Typography_heading-xs__dd9b51')
-        if author_element:
-            review['author'] = author_element.get_text(strip=True)
-
-        count_element = element.select_one('div.styles_consumerExtraDetails__9xAlV')
-        if count_element:
-            count_text = count_element.get_text(strip=True)
-            count_match = re.search(r'(\d+)\s+reviews?', count_text)
-            if count_match:
-                review['author_review_count'] = int(count_match.group(1))
-
-        date_element = element.select_one('time')
-        if date_element:
-            review['date_absolute'] = date_element.get('datetime', '')
-            review['date_relative'] = date_element.get_text(strip=True)
-
-        rating_element = element.select_one('img[alt*="out of"]')
-        if rating_element:
-            alt_text = rating_element.get('alt', '')
-            rating_match = re.search(r'(\d+(?:\.\d+)?)\s*out of 5', alt_text)
-            if rating_match:
-                review['rating'] = float(rating_match.group(1))
-
-        title_element = element.select_one('h2.CDS_Typography_heading-s__dd9b51')
-        if title_element:
-            review['title'] = title_element.get_text(strip=True)
-
-        content_elements = element.select('p.CDS_Typography_body-l__dd9b51, div.CDS_Typography_body-l__dd9b51')
-        for content_elem in content_elements:
-            text = content_elem.get_text(strip=True)
-            if text and len(text) > 20:
-                review['content'] = text
-                break
-
-        link_element = element.select_one('a[href*="/review/"]')
-        if link_element and 'href' in link_element.attrs:
-            review['review_link'] = urljoin('https://www.trustpilot.com', link_element['href'])
-
-        response_element = element.select_one('div.styles_businessResponse__1Sd7_')
-        if response_element:
-            review['company_response']['exists'] = True
-            response_date = response_element.select_one('time')
-            if response_date:
-                review['company_response']['date'] = response_date.get('datetime', '')
-            response_content = response_element.select_one('p, div')
-            if response_content:
-                review['company_response']['content'] = response_content.get_text(strip=True)
-        
-        return review
-
     def scrape_company(self, company_name: str, resume: bool = True) -> Dict:
-        """Scrape une entreprise complète avec reprise"""
-        company_name_clean = f"www.{company_name}" if not company_name.startswith('www.') else company_name
-
+        """Scrape une entreprise complète avec la méthode JSON"""
         start_page = 1
         total_reviews = 0
         batch_number = 1
         
         if resume:
-            progress = self.load_progress(company_name_clean)
+            progress = self.load_progress(company_name)
             if progress and progress.get('status') == 'completed':
                 self.logger.info(f"{company_name} déjà complétée avec {progress['total_reviews']} reviews")
                 return {'status': 'already_completed', **progress}
@@ -197,7 +210,7 @@ class TrustpilotMassScraper:
                 self.logger.info(f"Limite de {self.reviews_per_company} reviews atteinte pour {company_name}")
                 break
             
-            url = f"https://www.trustpilot.com/review/{company_name_clean}?page={page}"
+            url = self.build_url(company_name, page)
             
             try:
                 self.logger.info(f"{company_name} - Page {page} ({total_reviews} reviews accumulées)")
@@ -211,10 +224,13 @@ class TrustpilotMassScraper:
                 
                 soup = BeautifulSoup(response.content, 'html.parser')
 
+                # Extraction via __NEXT_DATA__
+                page_data = self.extract_from_next_data(soup, company_name)
+                
                 if page == 1 and not company_info:
-                    company_info = self.extract_company_info(soup, company_name)
+                    company_info = page_data['company_info']
 
-                page_reviews = self.extract_reviews_from_page(soup, company_name)
+                page_reviews = page_data['reviews']
                 
                 if not page_reviews:
                     self.logger.info(f"Aucune review trouvée - Fin du scraping pour {company_name}")
@@ -224,11 +240,11 @@ class TrustpilotMassScraper:
                 total_reviews += len(page_reviews)
 
                 if len(all_reviews) >= 50:
-                    self.save_company_batch(company_name_clean, all_reviews, batch_number)
+                    self.save_company_batch(company_name, all_reviews, batch_number)
                     batch_number += 1
                     all_reviews = []
 
-                self.save_progress(company_name_clean, page, total_reviews)
+                self.save_progress(company_name, page, total_reviews)
 
                 sleep_time = self.delay + random.uniform(0.5, 2.0)
                 time.sleep(sleep_time)
@@ -241,9 +257,9 @@ class TrustpilotMassScraper:
                 break
 
         if all_reviews:
-            self.save_company_batch(company_name_clean, all_reviews, batch_number)
+            self.save_company_batch(company_name, all_reviews, batch_number)
 
-        self.mark_company_completed(company_name_clean, total_reviews)
+        self.mark_company_completed(company_name, total_reviews)
         
         return {
             'company': company_name,
@@ -253,32 +269,6 @@ class TrustpilotMassScraper:
             'status': 'completed',
             'completed_at': datetime.now().isoformat()
         }
-
-    def extract_company_info(self, soup: BeautifulSoup, company_name: str) -> Dict:
-        """Extrait les informations de l'entreprise"""
-        company_info = {
-            'company_name': company_name,
-            'trustscore': '',
-            'review_count': '',
-            'scraped_at': datetime.now().isoformat()
-        }
-        
-        try:
-            trustscore_element = soup.select_one('span.CDS_Typography_heading-l__dd9b51')
-            if trustscore_element:
-                company_info['trustscore'] = trustscore_element.get_text(strip=True)
-            
-            reviews_element = soup.find('span', string=re.compile(r'reviews', re.I))
-            if reviews_element:
-                text = reviews_element.get_text(strip=True)
-                count_match = re.search(r'([\d,]+)', text)
-                if count_match:
-                    company_info['review_count'] = count_match.group(1).replace(',', '')
-            
-        except Exception as e:
-            self.logger.warning(f"Erreur infos entreprise: {e}")
-        
-        return company_info
 
     def scrape_companies(self, companies: List[str], resume: bool = True) -> Dict:
         """Scrape plusieurs entreprises en séquence"""
