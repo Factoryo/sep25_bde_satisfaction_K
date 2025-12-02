@@ -19,6 +19,26 @@ services:
     networks:
       - app-network
 
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=trustpilot_db
+      - POSTGRES_USER=trustpilot_user
+      - POSTGRES_PASSWORD=trustpilot_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./etl_elt/scripts/postgres_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trustpilot_user -d trustpilot_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # Elasticsearch
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
@@ -52,7 +72,7 @@ services:
       context: .
       dockerfile: docker/Dockerfile.dashboard
     ports:
-      - "8501:8501"
+      - "8502:8501"
     environment:
       - API_URL=http://api:8000
     depends_on:
@@ -64,6 +84,7 @@ services:
 
 volumes:
   elasticsearch-data:
+  postgres-data:
 
 networks:
   app-network:

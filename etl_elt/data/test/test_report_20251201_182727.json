@@ -1,0 +1,17 @@
+{
+  "apple.com": {
+    "status": "failed",
+    "error": "'TrustpilotReviewsScraper' object has no attribute 'company_info'",
+    "total_reviews": 0
+  },
+  "amazon.com": {
+    "status": "failed",
+    "error": "'TrustpilotReviewsScraper' object has no attribute 'company_info'",
+    "total_reviews": 0
+  },
+  "booking.com": {
+    "status": "failed",
+    "error": "'TrustpilotReviewsScraper' object has no attribute 'company_info'",
+    "total_reviews": 0
+  }
+}

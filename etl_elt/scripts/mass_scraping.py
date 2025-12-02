@@ -8,7 +8,7 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 src_dir = os.path.dirname(current_dir)
 sys.path.insert(0, src_dir)
 
-from scrapers.trustpilot_mass_scraper import TrustpilotMassScraper
+from scrapers.trustpilot_reviews_scraper import TrustpilotReviewsScraper
 
 # Configuration du logging
 logging.basicConfig(
@@ -23,45 +23,167 @@ logging.basicConfig(
 def main():
     """Script principal pour le scraping massif (version standalone)"""
     
+    # Liste étendue d'entreprises avec >10000 avis
     COMPANIES = [
+        # E-commerce & Retail
         "amazon.com",
-        "apple.com", 
+        "amazon.co.uk",
+        "ebay.com",
+        "aliexpress.com",
+        "wish.com",
+        "etsy.com",
+        "walmart.com",
+        "target.com",
+        
+        # Tech
+        "apple.com",
         "microsoft.com",
         "google.com",
+        "samsung.com",
+        "dell.com",
+        "hp.com",
+        
+        # Services & Apps
         "facebook.com",
+        "instagram.com",
+        "twitter.com",
+        "tiktok.com",
         "netflix.com",
-        "tesla.com",
         "spotify.com",
+        "zoom.us",
+        "paypal.com",
+        
+        # Travel & Transport
+        "booking.com",
         "airbnb.com",
+        "expedia.com",
+        "tripadvisor.com",
         "uber.com",
-        "showroomprive.com"  # Ajout pour tester
+        "lyft.com",
+        "ryanair.com",
+        
+        # Fashion & Lifestyle
+        "asos.com",
+        "zara.com",
+        "hm.com",
+        "nike.com",
+        "adidas.com",
+        
+        # Food Delivery
+        "ubereats.com",
+        "deliveroo.com",
+        "doordash.com",
+        
+        # Telecom & Utilities
+        "verizon.com",
+        "att.com",
+        "t-mobile.com",
+        
+        # Finance
+        "revolut.com",
+        "n26.com",
+        "coinbase.com",
+        
+        # France spécifique
+        "showroomprive.com",
+        "vinted.fr",
+        "leboncoin.fr",
+        "cdiscount.com",
+        "fnac.com",
+        "sncf.com",
+        "orange.fr",
+        "freemobile.fr",
+        "bouyguestelecom.fr"
     ]
     
     print("🚀 SCRAPING MASSIF TRUSTPILOT")
-    print("=" * 50)
+    print("=" * 60)
     print(f"📋 {len(COMPANIES)} entreprises à scraper")
-    print(f"🎯 Objectif: ~5000 reviews par entreprise")
+    print(f"🎯 Objectif: 10,000+ reviews par entreprise")
     print(f"⏰ Début: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print("=" * 50)
+    print(f"🔄 Stratégie: Multi-filtres par étoiles (5★ → 1★)")
+    print("=" * 60)
     
-    # Configuration du scraper
-    scraper = TrustpilotMassScraper(
-        delay=2.0,                    # Délai de base entre les pages
-        max_pages_per_company=200,    # Max 200 pages par entreprise
-        reviews_per_company=5000      # Objectif 5000 reviews
-    )
+    # Créer les répertoires nécessaires
+    os.makedirs("data/raw", exist_ok=True)
+    os.makedirs("data/processed", exist_ok=True)
+    os.makedirs("logs", exist_ok=True)
+    
+    results = {}
+    
+    # Scraper chaque entreprise avec la stratégie multi-filtres
+    for i, company_domain in enumerate(COMPANIES, 1):
+        print(f"\n{'='*60}")
+        print(f"🏢 Entreprise {i}/{len(COMPANIES)}: {company_domain}")
+        print(f"{'='*60}")
+        
+        try:
+            # Construire l'URL Trustpilot
+            company_url = f"https://fr.trustpilot.com/review/{company_domain}"
+            
+            # Créer un scraper
+            scraper = TrustpilotReviewsScraper(delay=2.0)
+            
+            # Scraper avec la stratégie multi-filtres
+            print(f"🔄 Démarrage du scraping avec multi-filtres...")
+            reviews = scraper.scrape_all_reviews(
+                company_url=company_url,
+                use_filters=True, 
+                max_reviews=10000
+            )
+            
+            # Sauvegarder les résultats
+            output_file = f"data/raw/{company_domain.replace('.', '_')}_reviews.json"
+            
+            # Construire le fichier avec infos complètes
+            output_data = {
+                'company_info': scraper.company_info,
+                'reviews': reviews,
+                'scraped_at': datetime.now().isoformat(),
+                'total_reviews': len(reviews)
+            }
+            
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(output_data, f, indent=2, ensure_ascii=False)
+            
+            results[company_domain] = {
+                'status': 'completed',
+                'total_reviews': len(reviews),
+                'company_info': scraper.company_info,
+                'output_file': output_file
+            }
+            
+            print(f"✅ {company_domain}: {len(reviews)} reviews scrapées")
+            print(f"💾 Sauvegardé dans: {output_file}")
+            
+            # Pause entre les entreprises
+            if i < len(COMPANIES):
+                import time
+                import random
+                pause = random.uniform(5.0, 10.0)
+                print(f"⏸️  Pause de {pause:.1f}s avant la prochaine entreprise...")
+                time.sleep(pause)
+                
+        except Exception as e:
+            logging.error(f"❌ Erreur sur {company_domain}: {e}")
+            results[company_domain] = {
+                'status': 'failed',
+                'error': str(e),
+                'total_reviews': 0
+            }
+            continue
     
     # Démarrer le scraping
     try:
-        results = scraper.scrape_companies(COMPANIES, resume=True)
-        
         # Générer un rapport final
         generate_final_report(results)
         
     except KeyboardInterrupt:
         print("\n⏹️  Scraping interrompu par l'utilisateur")
+        generate_final_report(results)
     except Exception as e:
         print(f"\n❌ Erreur générale: {e}")
+        logging.error(f"Erreur générale: {e}", exc_info=True)
 
 def generate_final_report(results: dict):
     """Génère un rapport final du scraping"""
