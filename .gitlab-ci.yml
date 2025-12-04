@@ -1,0 +1,256 @@
+# Pipeline CI/CD GitLab pour le projet Trustpilot Satisfaction
+# Déploiement automatique avec tests, build et monitoring
+
+stages:
+  - test
+  - build
+  - deploy
+  - monitor
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+  REGISTRY: registry.gitlab.com
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+
+# Cache pour accélérer les builds
+cache:
+  paths:
+    - .venv/
+    - node_modules/
+
+# ========================================
+# STAGE 1: TESTS
+# ========================================
+
+test:python:
+  stage: test
+  image: python:3.11-slim
+  before_script:
+    - pip install --upgrade pip
+    - pip install -r requirements.txt
+    - pip install pytest pytest-cov flake8
+  script:
+    - echo "🧪 Exécution des tests Python..."
+    - flake8 api/ scripts/ --max-line-length=120 --exclude=.venv
+    - pytest tests/ -v --cov=api --cov=scripts --cov-report=term --cov-report=xml
+  coverage: '/TOTAL.*\s+(\d+%)$/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+  only:
+    - main
+    - develop
+    - merge_requests
+
+test:api:
+  stage: test
+  image: python:3.11-slim
+  services:
+    - elasticsearch:8.11.0
+    - postgres:15-alpine
+  variables:
+    ELASTICSEARCH_HOST: elasticsearch
+    POSTGRES_HOST: postgres
+    POSTGRES_DB: trustpilot_db
+    POSTGRES_USER: trustpilot_user
+    POSTGRES_PASSWORD: trustpilot_pass
+  before_script:
+    - pip install -r api/requirements_ml.txt
+    - pip install requests pytest
+  script:
+    - echo "🔧 Test de l'API ML..."
+    - python -m pytest api/test_ml_api.py -v
+  only:
+    - main
+    - develop
+    - merge_requests
+
+# ========================================
+# STAGE 2: BUILD
+# ========================================
+
+build:api:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "🏗️  Build de l'image API..."
+    - docker build -t $REGISTRY/$CI_PROJECT_PATH/api:$CI_COMMIT_SHORT_SHA -f docker/Dockerfile.api .
+    - docker build -t $REGISTRY/$CI_PROJECT_PATH/api:latest -f docker/Dockerfile.api .
+    - docker push $REGISTRY/$CI_PROJECT_PATH/api:$CI_COMMIT_SHORT_SHA
+    - docker push $REGISTRY/$CI_PROJECT_PATH/api:latest
+  only:
+    - main
+    - develop
+
+build:ml-api:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "🏗️  Build de l'image ML API..."
+    - docker build -t $REGISTRY/$CI_PROJECT_PATH/ml-api:$CI_COMMIT_SHORT_SHA -f docker/Dockerfile.ml-api .
+    - docker build -t $REGISTRY/$CI_PROJECT_PATH/ml-api:latest -f docker/Dockerfile.ml-api .
+    - docker push $REGISTRY/$CI_PROJECT_PATH/ml-api:$CI_COMMIT_SHORT_SHA
+    - docker push $REGISTRY/$CI_PROJECT_PATH/ml-api:latest
+  only:
+    - main
+
+build:dashboard:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    - echo "🏗️  Build de l'image Dashboard..."
+    - docker build -t $REGISTRY/$CI_PROJECT_PATH/dashboard:$CI_COMMIT_SHORT_SHA -f docker/Dockerfile.dashboard .
+    - docker build -t $REGISTRY/$CI_PROJECT_PATH/dashboard:latest -f docker/Dockerfile.dashboard .
+    - docker push $REGISTRY/$CI_PROJECT_PATH/dashboard:$CI_COMMIT_SHORT_SHA
+    - docker push $REGISTRY/$CI_PROJECT_PATH/dashboard:latest
+  only:
+    - main
+
+# ========================================
+# STAGE 3: DEPLOY
+# ========================================
+
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client docker-compose
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $STAGING_SERVER >> ~/.ssh/known_hosts
+  script:
+    - echo "🚀 Déploiement sur le serveur de staging..."
+    - ssh $STAGING_USER@$STAGING_SERVER "cd $STAGING_PATH && docker-compose pull && docker-compose up -d"
+    - echo "✓ Déploiement staging terminé"
+  environment:
+    name: staging
+    url: http://staging.trustpilot-analytics.com
+  only:
+    - develop
+  when: manual
+
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client docker-compose
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $PROD_SERVER >> ~/.ssh/known_hosts
+  script:
+    - echo "🚀 Déploiement en PRODUCTION..."
+    - ssh $PROD_USER@$PROD_SERVER "cd $PROD_PATH && docker-compose pull && docker-compose up -d"
+    - echo "✓ Déploiement production terminé"
+    - echo "📊 Vérification de la santé des services..."
+    - ssh $PROD_USER@$PROD_SERVER "curl -f http://localhost:8000/health || exit 1"
+    - ssh $PROD_USER@$PROD_SERVER "curl -f http://localhost:8001/health || exit 1"
+  environment:
+    name: production
+    url: https://trustpilot-analytics.com
+  only:
+    - main
+  when: manual
+
+# ========================================
+# STAGE 4: MONITORING
+# ========================================
+
+monitor:health-check:
+  stage: monitor
+  image: curlimages/curl:latest
+  script:
+    - echo "🏥 Vérification de la santé des services..."
+    - curl -f http://$PROD_SERVER:8000/health || exit 1
+    - curl -f http://$PROD_SERVER:8001/health || exit 1
+    - echo "✅ Tous les services sont opérationnels"
+  only:
+    - main
+  needs:
+    - deploy:production
+  when: on_success
+
+monitor:performance:
+  stage: monitor
+  image: python:3.11-slim
+  before_script:
+    - pip install requests
+  script:
+    - echo "⚡ Test de performance de l'API ML..."
+    - python -c "
+      import requests
+      import time
+      
+      url = 'http://$PROD_SERVER:8001/api/ml/predict'
+      data = {'text': 'Test de performance', 'title': 'Test'}
+      
+      # Test de 10 requêtes
+      durations = []
+      for i in range(10):
+          start = time.time()
+          r = requests.post(url, json=data, timeout=5)
+          duration = (time.time() - start) * 1000
+          durations.append(duration)
+          if r.status_code != 200:
+              exit(1)
+      
+      avg = sum(durations) / len(durations)
+      print(f'Latence moyenne: {avg:.1f}ms')
+      
+      if avg > 500:
+          print('⚠️  ALERTE: Latence élevée')
+          exit(1)
+      "
+    - echo "✅ Performance OK"
+  only:
+    - main
+  needs:
+    - deploy:production
+  when: on_success
+  allow_failure: true
+
+# ========================================
+# NOTIFICATIONS
+# ========================================
+
+notify:success:
+  stage: .post
+  image: alpine:latest
+  script:
+    - echo "✅ Pipeline terminé avec succès!"
+    - echo "Branch: $CI_COMMIT_BRANCH"
+    - echo "Commit: $CI_COMMIT_SHORT_SHA"
+    - echo "Author: $CI_COMMIT_AUTHOR"
+  when: on_success
+  only:
+    - main
+
+notify:failure:
+  stage: .post
+  image: alpine:latest
+  script:
+    - echo "❌ Pipeline échoué!"
+    - echo "Branch: $CI_COMMIT_BRANCH"
+    - echo "Commit: $CI_COMMIT_SHORT_SHA"
+    - echo "Job failed: $CI_JOB_NAME"
+  when: on_failure
+  only:
+    - main
