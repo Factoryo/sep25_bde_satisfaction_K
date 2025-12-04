@@ -1,0 +1,16 @@
+{
+  "yaml.schemas": {
+    "https://json.schemastore.org/gitlab-ci.json": ".gitlab-ci.yml"
+  },
+  "yaml.customTags": [
+    "!reference sequence"
+  ],
+  "files.associations": {
+    "**/monitoring/grafana/**/*.yml": "yaml",
+    "**/monitoring/grafana/**/*.yaml": "yaml"
+  },
+  "yaml.validate": true,
+  "yaml.completion": true,
+  "yaml.hover": true,
+  "yaml.format.enable": true
+}

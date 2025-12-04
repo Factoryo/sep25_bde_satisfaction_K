@@ -1,0 +1,8 @@
+# YAML Language Server ignore patterns
+# Fichier pour ignorer les erreurs dans les fichiers de config Grafana
+
+# Les fichiers Grafana utilisent un schéma YAML spécifique
+# VS Code ne peut pas les valider correctement
+monitoring/grafana/datasources/*.yml
+monitoring/grafana/datasources/*.yaml
+monitoring/grafana/dashboards/*.json

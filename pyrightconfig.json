@@ -1,0 +1,40 @@
+{
+  "include": [
+    "airflow",
+    "api",
+    "dashboard",
+    "etl_elt",
+    "scripts"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/__pycache__",
+    "**/venv",
+    "**/.venv",
+    "**/data"
+  ],
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false,
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "executionEnvironments": [
+    {
+      "root": "airflow/dags",
+      "extraPaths": [
+        "/opt/airflow",
+        "../etl_elt",
+        "../scripts"
+      ]
+    },
+    {
+      "root": "etl_elt",
+      "extraPaths": []
+    },
+    {
+      "root": "api",
+      "extraPaths": [
+        "../scripts"
+      ]
+    }
+  ]
+}

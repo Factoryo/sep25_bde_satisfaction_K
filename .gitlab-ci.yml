@@ -195,7 +195,8 @@ monitor:performance:
     - pip install requests
   script:
     - echo "⚡ Test de performance de l'API ML..."
-    - python -c "
+    - |
+      python -c "
       import requests
       import time
       
