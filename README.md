@@ -7,8 +7,10 @@ Ce projet de Data Engineering vise à analyser la satisfaction client dans le co
 ### ✨ Fonctionnalités principales
 
 - **Web Scraping Massif** : Collecte automatisée de 10,000+ reviews par entreprise avec stratégie multi-filtres
-- **Machine Learning** : Analyse prédictive et classification des retours clients
-- **API REST** : Interface pour accéder aux données et aux modèles de prédiction
+- **Machine Learning** : Analyse de sentiment avec 3 modèles (Logistic Regression, Naive Bayes, Random Forest)
+- **API REST** : Interface pour accéder aux données et aux prédictions de sentiment en temps réel
+- **ML API** : Service dédié pour les prédictions ML (port 8001)
+- **Data Drift Monitoring** : Détection automatique des dérives dans les données
 - **Dashboard** : Visualisation interactive des métriques de satisfaction
 - **Orchestration** : Automatisation des workflows de données avec Airflow
 
@@ -135,14 +137,25 @@ supply-chain-satisfaction-client/
 ├── scripts/
 │   ├── scraping/            # Scripts de web scraping
 │   ├── database/            # Scripts de chargement PostgreSQL/Elasticsearch
-│   └── ml/                  # Scripts de machine learning
-├── api/                     # Application FastAPI
+│   └── ml/                  # Scripts ML et monitoring
+│       ├── models/          # Modèles sauvegardés (.pkl)
+│       └── data_drift_monitor.py  # Détection de data drift
+├── notebooks/               # Jupyter notebooks pour analyses
+│   └── sentiment_analysis.ipynb   # Workflow ML complet
+├── api/                     # Applications FastAPI
+│   ├── main.py             # API principale (données, stats)
+│   ├── ml_api.py           # API ML (prédictions de sentiment)
+│   └── requirements_ml.txt # Dépendances ML spécifiques
 ├── dashboard/               # Application Streamlit
-├── docker/                  # Fichiers Docker (API, Dashboard)
+├── docker/                  # Fichiers Docker
+│   ├── Dockerfile.api      # API principale
+│   ├── Dockerfile.ml-api   # ML API
+│   └── Dockerfile.dashboard
 ├── airflow/                 # DAGs et configuration Airflow
 ├── docs/                    # Documentation complète
 │   ├── DATABASE_ORGANIZATION.md  # Guide base de données
-│   └── KIBANA_SETUP.md          # Configuration Kibana
+│   ├── KIBANA_SETUP.md          # Configuration Kibana
+│   └── data_drift_reports/      # Rapports de monitoring
 ├── etl_elt/                 # Système de scraping Trustpilot
 │   ├── scrapers/            # Scripts de scraping
 │   ├── scripts/             # Mass scraping et utilitaires
@@ -180,13 +193,15 @@ supply-chain-satisfaction-client/
    ```
 
 3. **Installer les dépendances**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Déploiement avec Docker
-
-1. **Lancer tous les services**
+2. **Accéder aux services**
+   - API FastAPI (données) : http://localhost:8000
+   - API FastAPI (ML/prédictions) : http://localhost:8001
+   - Documentation API principale : http://localhost:8000/docs
+   - Documentation ML API : http://localhost:8001/docs
+   - Dashboard Streamlit : http://localhost:8502
+   - PostgreSQL : localhost:5432 (trustpilot_db)
+   - Elasticsearch : http://localhost:9200
+   - Kibana : http://localhost:5601
    ```bash
    docker-compose up -d
    ```
@@ -209,16 +224,70 @@ supply-chain-satisfaction-client/
 
 ```bash
 docker-compose down
-```
-
 ## Utilisation
 
-### API
+### API Principale (Port 8000)
 
-L'API FastAPI expose des endpoints pour :
-- Récupérer les données de satisfaction
-- Soumettre de nouvelles données
-- Obtenir des prédictions du modèle ML
+L'API FastAPI principale expose des endpoints pour :
+- Récupérer les statistiques de satisfaction (`/api/stats`)
+- Lister et filtrer les avis (`/api/reviews`)
+- Obtenir les informations d'entreprises (`/api/companies`)
+- Health check du système (`/health`)
+
+**Exemple:**
+```bash
+curl http://localhost:8000/api/stats
+```
+
+### ML API (Port 8001)
+
+L'API ML expose des endpoints pour les prédictions de sentiment :
+- **POST** `/api/ml/predict` - Prédiction sur un seul avis
+- **POST** `/api/ml/predict-batch` - Prédictions en batch
+- **GET** `/api/ml/model-info` - Informations sur le modèle en production
+- **GET** `/api/ml/model-performance` - Comparaison des performances des modèles
+- **GET** `/health` - Vérifier l'état du chargement des modèles
+
+**Exemple de prédiction:**
+```bash
+curl -X POST http://localhost:8001/api/ml/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "Service excellent et livraison rapide!",
+    "title": "Très satisfait"
+  }'
+```
+
+**Réponse:**
+```json
+{
+  "sentiment": "positif",
+  "confidence": 0.92,
+  "probabilities": {
+    "positif": 0.92,
+    "negatif": 0.05,
+    "neutre": 0.03
+  },
+  "cleaned_text": "service excellent livraison rapide"
+}
+```
+
+### Data Drift Monitoring
+
+Détecter les dérives dans les données pour maintenir la qualité des modèles :
+
+```bash
+python scripts/ml/data_drift_monitor.py
+```
+
+Le script génère :
+- Rapport JSON détaillé avec statistiques
+- Visualisations (distributions, évolutions temporelles)
+- Alertes si dérive significative détectée
+
+Rapports sauvegardés dans `docs/data_drift_reports/`
+
+### Dashboard prédictions du modèle ML
 
 ### Dashboard
 

@@ -82,6 +82,24 @@ services:
     networks:
       - app-network
 
+  # ML API (Machine Learning predictions)
+  ml-api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.ml-api
+    ports:
+      - "8001:8001"
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - api
+    volumes:
+      - ./api:/app/api
+      - ./scripts/ml/models:/app/scripts/ml/models:ro
+    networks:
+      - app-network
+    restart: unless-stopped
+
 volumes:
   elasticsearch-data:
   postgres-data:
