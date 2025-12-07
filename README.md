@@ -72,9 +72,9 @@ Scraper (Python) → JSON files → API FastAPI → Dashboard Streamlit
 ## Le modèle ML
 
 J'ai testé plusieurs algos sur les avis :
-- Naive Bayes → F1 = 0.72
-- Random Forest → F1 = 0.74
-- **Logistic Regression → F1 = 0.77** ← Celui que j'utilise
+- Naive Bayes → F1 = 0.91
+- Random Forest → F1 = 0.93
+- **Logistic Regression → F1 = 0.94** ← Celui que j'utilise
 
 Features : TF-IDF sur le texte des avis (5000 features, uni+bigrams)
 
