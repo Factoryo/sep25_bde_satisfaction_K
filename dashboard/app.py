@@ -44,18 +44,18 @@ def fetch_stats() -> Dict[str, Any]:
         "neutral_reviews": 100
     }
 
-def fetch_reviews(limit: int = 10) -> list:
+def fetch_reviews(limit: int = 10, company: str = None) -> list:
     try:
-        response = requests.get(f"{API_URL}/api/reviews?limit={limit}", timeout=5)
+        url = f"{API_URL}/api/reviews?limit={limit}&shuffle=true"
+        if company:
+            url += f"&company={company}"
+        response = requests.get(url, timeout=5)
         if response.status_code == 200:
             return response.json()
     except Exception as e:
         st.error(f"Erreur lors de la récupération des avis: {e}")
     
-    return [
-        {"id": 1, "company": "Entreprise A", "rating": 4.5, "comment": "Excellent service", "date": "2025-11-01"},
-        {"id": 2, "company": "Entreprise B", "rating": 3.0, "comment": "Expérience moyenne", "date": "2025-11-02"}
-    ]
+    return []
 
 def fetch_companies() -> list:
     try:
@@ -151,11 +151,16 @@ if page == "Vue d'ensemble":
 elif page == "Avis":
     st.header("Avis Récents")
     
-    col1, col2 = st.columns([1, 3])
+    col1, col2, col3 = st.columns([1, 2, 1])
     with col1:
         num_reviews = st.selectbox("Nombre d'avis", [10, 25, 50, 100], index=0)
+    with col2:
+        companies = fetch_companies()
+        company_names = ["Toutes"] + [c['name'] for c in companies]
+        selected_company = st.selectbox("Entreprise", company_names, index=0)
     
-    reviews = fetch_reviews(limit=num_reviews)
+    company_filter = None if selected_company == "Toutes" else selected_company
+    reviews = fetch_reviews(limit=num_reviews, company=company_filter)
     
     if reviews:
         df = pd.DataFrame(reviews)

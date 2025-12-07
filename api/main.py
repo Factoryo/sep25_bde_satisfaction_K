@@ -5,6 +5,7 @@ from typing import List, Optional
 from pathlib import Path
 import logging
 import json
+import random
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -123,12 +124,15 @@ async def get_stats():
     )
 
 @app.get("/api/reviews", response_model=List[Review])
-async def get_reviews(limit: int = 10, offset: int = 0, company: Optional[str] = None):
+async def get_reviews(limit: int = 10, offset: int = 0, company: Optional[str] = None, shuffle: bool = True):
     """Liste avis"""
-    reviews = load_reviews_from_files()
+    reviews = load_reviews_from_files().copy()
     
     if company:
         reviews = [r for r in reviews if company.lower() in r['company'].lower()]
+    
+    if shuffle:
+        random.shuffle(reviews)
     
     return [Review(**r) for r in reviews[offset:offset + limit]]
 
