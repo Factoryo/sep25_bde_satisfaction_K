@@ -1,172 +1,121 @@
-# Trustpilot Sentiment Analysis
+# Analyse de Sentiment Trustpilot
 
-Plateforme d'analyse de satisfaction client basée sur les avis Trustpilot avec Machine Learning et orchestration automatisée.
+Projet de data engineering : scraping d'avis Trustpilot, stockage, et prédiction de sentiment avec du ML.
 
-## Fonctionnalités
+## Pourquoi ce projet ?
 
-- **Scraping automatisé** : Collecte quotidienne d'avis Trustpilot via Airflow
-- **Machine Learning** : Analyse de sentiment (F1-Score: 0.77, Logistic Regression)
-- **APIs REST** : Accès aux données et prédictions ML
-- **Dashboard Streamlit** : Visualisation interactive
-- **Monitoring** : Data drift detection et métriques Prometheus/Grafana
-- **Orchestration** : Airflow DAGs pour automatisation complète
+Je voulais construire un pipeline complet de données, du scraping jusqu'à l'API de prédiction. Trustpilot était un bon choix car les avis sont structurés et y'a beaucoup de données disponibles.
 
-## Quick Start
+**Le plus compliqué** : Trustpilot bloque facilement les scrapers. J'ai dû ruser en filtrant par étoiles (1★, 2★, etc.) pour récupérer plus d'avis par entreprise. Sans ça, on est limité à ~100 avis max.
+
+## Ce que j'ai appris
+
+- Scraping "intelligent" avec BeautifulSoup (parsing du JSON-LD embarqué dans les pages)
+- Pipeline ETL avec stockage PostgreSQL + Elasticsearch
+- Entraînement d'un modèle de sentiment (Logistic Regression, F1=0.77)
+- Conteneurisation avec Docker Compose
+- Orchestration avec Airflow (DAGs quotidiens)
+
+## Démarrage rapide
 
 ```bash
-# Démarrer les services
+# Lancer tous les services
 docker-compose up -d
 
-# Initialiser Airflow (première fois uniquement)
-docker exec -it airflow-webserver airflow db init
-docker exec -it airflow-webserver airflow users create \
-  --username admin --password admin --firstname Admin --lastname User \
-  --role Admin --email admin@example.com
-
-# Charger des données initiales
-python scripts/database/load_all_data.py --data-dir data/raw
+# Vérifier que tout tourne
+docker ps
 ```
 
-## Services
+## Accès aux services
 
-| Service | URL | Description |
+| Service | URL | Credentials |
 |---------|-----|-------------|
-| API principale | http://localhost:8000 | Données et statistiques |
-| ML API | http://localhost:8001 | Prédictions de sentiment |
-| Dashboard | http://localhost:8502 | Interface Streamlit |
-| Airflow | http://localhost:8080 | Orchestration (admin/admin) |
-| Elasticsearch | http://localhost:9200 | Recherche full-text |
-| PostgreSQL | localhost:5432 | Base de données |
-| Grafana | http://localhost:3000 | Monitoring (admin/admin) |
+| Dashboard | http://localhost:8502 | - |
+| API | http://localhost:8000/docs | - |
+| ML API | http://localhost:8001/docs | - |
+| Airflow | http://localhost:8080 | admin / admin |
+| Grafana | http://localhost:3000 | admin / admin |
+| Kibana | http://localhost:5601 | - |
 
-## Architecture
+## Données collectées
 
-### Stack Technique
-- **Backend**: Python 3.11, FastAPI
-- **ML**: Scikit-learn, TF-IDF vectorization
-- **Bases de données**: PostgreSQL 15, Elasticsearch 8.11
-- **Orchestration**: Apache Airflow 2.8
-- **Monitoring**: Prometheus, Grafana
-- **Frontend**: Streamlit
-- **Infrastructure**: Docker Compose (12 services)
+J'ai scrapé **52 entreprises** et récupéré environ **39 000 avis**. Les entreprises sont variées : e-commerce (Amazon, Cdiscount, Vinted), voyage (Booking, Airbnb), services (Uber, Netflix), etc.
 
-### Pipeline de Données
+Les données brutes sont en JSON dans `data/raw/`.
+
+## Architecture simplifiée
 
 ```
-Trustpilot → Airflow DAG (daily @ 2AM) → PostgreSQL + Elasticsearch
-                    ↓
-              ML Training → Drift Detection (daily @ 3AM)
-                    ↓
-              ML API (predictions) → Dashboard Streamlit
+Scraper (Python) → JSON files → API FastAPI → Dashboard Streamlit
+                       ↓
+              PostgreSQL + Elasticsearch
+                       ↓
+                  ML Training → ML API (prédictions)
 ```
 
-## Utilisation
+## Structure du projet
 
-### Prédiction de Sentiment
+```
+├── api/                  # API FastAPI (données + stats)
+├── dashboard/            # Interface Streamlit
+├── etl_elt/
+│   ├── scrapers/        # Le scraper Trustpilot
+│   └── scripts/         # Scripts de scraping massif
+├── scripts/
+│   ├── database/        # Chargement des données
+│   └── ml/              # Entraînement du modèle
+├── airflow/dags/        # DAGs pour l'automatisation
+├── docker/              # Dockerfiles
+└── docker-compose.yml   # Orchestration des 12 services
+```
+
+## Le modèle ML
+
+J'ai testé plusieurs algos sur les avis :
+- Naive Bayes → F1 = 0.72
+- Random Forest → F1 = 0.74
+- **Logistic Regression → F1 = 0.77** ← Celui que j'utilise
+
+Features : TF-IDF sur le texte des avis (5000 features, uni+bigrams)
+
+### Exemple de prédiction
 
 ```bash
 curl -X POST http://localhost:8001/api/ml/predict \
   -H "Content-Type: application/json" \
-  -d '{
-    "text": "Service excellent et livraison rapide!",
-    "title": "Très satisfait"
-  }'
+  -d '{"text": "Livraison rapide, produit conforme", "title": "Super"}'
 ```
 
-**Réponse:**
+Réponse :
 ```json
-{
-  "sentiment": "positif",
-  "confidence": 0.92,
-  "probabilities": {
-    "positif": 0.92,
-    "negatif": 0.05,
-    "neutre": 0.03
-  }
-}
+{"sentiment": "positif", "confidence": 0.89}
 ```
 
-### Monitoring Data Drift
+## Difficultés rencontrées
+
+1. **Trustpilot anti-scraping** : J'ai contourné en utilisant les filtres par note
+2. **Données déséquilibrées** : Beaucoup plus d'avis 5★ que 1★ → j'ai sous-échantillonné
+3. **Docker Compose lent** : 12 services c'est lourd, mais ça montre une archi "prod-like"
+
+## TODO / Améliorations possibles
+
+- [ ] Ajouter un cache Redis pour l'API
+- [ ] Dashboard plus interactif (filtres par date)
+- [ ] Tester des modèles type BERT (mais lourd à déployer)
+- [ ] Monitoring des erreurs avec Sentry
+
+## Installation dev
 
 ```bash
-python scripts/ml/data_drift_monitor.py
-```
-
-Génère des rapports JSON et visualisations dans `docs/data_drift_reports/`
-
-### Scraping Manuel
-
-```bash
-# Lancer le scraping massif (52 entreprises)
-python -m etl_elt.scripts.mass_scraping
-```
-
-## Structure du Projet
-
-```
-sep25_bde_satisfaction_K/
-├── airflow/              # DAGs Airflow (scraping, monitoring)
-├── api/                  # FastAPI applications
-│   ├── main.py          # API données
-│   └── ml_api.py        # API ML prédictions
-├── dashboard/            # Streamlit dashboard
-├── data/                 # Données scrapées (raw/processed)
-├── etl_elt/              # Pipeline ETL/ELT
-│   ├── scrapers/        # Scrapers Trustpilot (reviews, categories)
-│   ├── scripts/         # Scripts de scraping massif
-│   └── utils/           # Helpers et configuration
-├── scripts/
-│   ├── database/        # Load PostgreSQL/Elasticsearch
-│   └── ml/              # Training, drift detection
-├── notebooks/            # Jupyter analysis
-├── monitoring/           # Prometheus + Grafana config
-├── docker/               # Dockerfiles
-├── docker-compose.yml    # 12 services orchestrés
-└── requirements.txt
-```
-
-## Installation
-
-### Prérequis
-- Python 3.11+
-- Docker Desktop
-- Git
-
-### Setup
-
-```bash
-# Clone
-git clone https://github.com/Factoryo/sep25_bde_satisfaction_K.git
-cd sep25_bde_satisfaction_K
-
 # Environnement Python
-python -m venv venv
-.\venv\Scripts\activate  # Windows
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1  # Windows
 pip install -r requirements.txt
 
-# Démarrer Docker
+# Lancer en dev
 docker-compose up -d
-
-# Initialiser Airflow
-docker exec -it airflow-webserver airflow db init
 ```
-
-## CI/CD
-
-Pipeline GitLab CI avec 4 stages:
-1. **Test**: Linting, tests unitaires
-2. **Build**: Docker images
-3. **Deploy**: Push images, deploy services
-4. **Monitor**: Health checks, alertes
-
-## Modèle ML
-
-- **Algorithme**: Logistic Regression (meilleur F1-Score)
-- **Features**: TF-IDF (5000 features, 1-2 grams)
-- **Performance**: F1=0.7696, Précision=0.77, Rappel=0.77
-- **Dataset**: 21,795 reviews entraînement
-- **Classes**: Positif, Négatif, Neutre
 
 ## Licence
 
-MIT License - Voir [LICENSE](LICENSE)
+MIT

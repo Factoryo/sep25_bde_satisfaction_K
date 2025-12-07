@@ -10,8 +10,18 @@ import os
 from datetime import datetime
 
 class TrustpilotJSONLDScraper:
+    """
+    Scraper Trustpilot qui extrait les avis depuis le HTML.
+    
+    J'ai testé plusieurs approches :
+    - API Trustpilot : pas publique, besoin d'un partenariat
+    - JSON-LD embarqué : marche bien mais limité à ~20 avis/page
+    - Parsing HTML direct : c'est ce que je fais ici
+    
+    Attention : Trustpilot bloque si on va trop vite (d'où le delay).
+    """
     def __init__(self, delay: float = 3.0, max_pages: int = 3):
-        self.delay = delay
+        self.delay = delay  # Pause entre requêtes pour éviter le ban
         self.max_pages = max_pages
         self.session = requests.Session()
         self.session.headers.update({
@@ -25,7 +35,7 @@ class TrustpilotJSONLDScraper:
         self.logger = logging.getLogger(__name__)
 
     def extract_company_info(self, soup: BeautifulSoup, company_name: str) -> Dict:
-        """Infos entreprise"""
+        """Récupère le TrustScore et le nombre total d'avis de l'entreprise."""
         company_info = {
             'company_name': company_name,
             'trustscore': '',
@@ -55,7 +65,12 @@ class TrustpilotJSONLDScraper:
         return company_info
 
     def extract_reviews_from_html(self, soup: BeautifulSoup, company_name: str) -> List[Dict]:
-        """Extraction avis"""
+        """
+        Parse les cartes d'avis de la page.
+        
+        Chaque avis est dans un <article class="styles_reviewCard__meSdm">.
+        Le sélecteur CSS peut changer si Trustpilot met à jour son design.
+        """
         reviews = []
 
         review_elements = soup.select('article.styles_reviewCard__meSdm')
@@ -74,7 +89,7 @@ class TrustpilotJSONLDScraper:
         return reviews
 
     def parse_review_element_final(self, element, company_name: str) -> Dict:
-        """Parse avis"""
+        """Extrait toutes les infos d'un avis : auteur, note, titre, contenu, date."""
         review = {
             'company_name': company_name,
             'author': '',

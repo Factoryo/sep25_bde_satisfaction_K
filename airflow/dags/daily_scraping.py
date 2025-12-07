@@ -9,11 +9,10 @@ import os
 sys.path.insert(0, '/app')
 
 default_args = {
-    'owner': 'data_team',
+    'owner': 'rodolphe',
     'depends_on_past': False,
     'start_date': datetime(2024, 12, 1),
-    'email': ['alerts@company.com'],
-    'email_on_failure': True,
+    'email_on_failure': False,  # Désactivé en dev
     'email_on_retry': False,
     'retries': 2,
     'retry_delay': timedelta(minutes=15),

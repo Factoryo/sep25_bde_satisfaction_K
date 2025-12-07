@@ -11,8 +11,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Supply Chain Satisfaction API",
-    description="API for analyzing customer satisfaction in supply chain",
+    title="Trustpilot Reviews API",
+    description="API pour accéder aux avis scrapés et aux stats",
     version="1.0.0"
 )
 
@@ -29,7 +29,12 @@ _reviews_cache = None
 _companies_cache = None
 
 def load_reviews_from_files() -> List[dict]:
-    """Charge avis JSON"""
+    """
+    Charge les avis depuis les fichiers JSON scrapés.
+    
+    Les fichiers sont dans data/raw/ avec le format: {company}_reviews.json
+    On met en cache pour éviter de relire les fichiers à chaque requête.
+    """
     global _reviews_cache
     if _reviews_cache is not None:
         return _reviews_cache

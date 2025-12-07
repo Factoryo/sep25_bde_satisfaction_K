@@ -198,27 +198,50 @@ elif page == "Entreprises":
 elif page == "Analyses":
     st.header("Analyses Avancées")
     
-    st.info("🚧 Fonctionnalités d'analyses avancées à venir !")
+    # Récupère les vraies données
+    reviews = fetch_reviews(limit=1000)
     
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.subheader("Distribution des Notes")
-        rating_dist = pd.DataFrame({
-            'Note': [1, 2, 3, 4, 5],
-            'Nombre': [50, 100, 100, 350, 400]
-        })
-        fig = px.bar(rating_dist, x='Note', y='Nombre')
-        st.plotly_chart(fig, use_container_width=True)
-    
-    with col2:
-        st.subheader("Mots-clés les Plus Fréquents")
-        keywords = pd.DataFrame({
-            'Mot-clé': ['livraison', 'qualité', 'service', 'prix', 'support'],
-            'Fréquence': [450, 380, 320, 280, 210]
-        })
-        fig = px.bar(keywords, x='Fréquence', y='Mot-clé', orientation='h')
-        st.plotly_chart(fig, use_container_width=True)
+    if reviews:
+        df = pd.DataFrame(reviews)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Distribution des Notes")
+            if 'rating' in df.columns:
+                rating_counts = df['rating'].value_counts().sort_index()
+                rating_df = pd.DataFrame({
+                    'Note': rating_counts.index.astype(int),
+                    'Nombre': rating_counts.values
+                })
+                fig = px.bar(rating_df, x='Note', y='Nombre', color='Note',
+                           color_continuous_scale='RdYlGn')
+                st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            st.subheader("Top Entreprises par Nombre d'Avis")
+            if 'company' in df.columns:
+                company_counts = df['company'].value_counts().head(10)
+                company_df = pd.DataFrame({
+                    'Entreprise': company_counts.index,
+                    'Avis': company_counts.values
+                })
+                fig = px.bar(company_df, x='Avis', y='Entreprise', orientation='h')
+                st.plotly_chart(fig, use_container_width=True)
+        
+        # Stats supplémentaires
+        st.subheader("Statistiques Détaillées")
+        col3, col4, col5 = st.columns(3)
+        with col3:
+            avg_rating = df['rating'].mean() if 'rating' in df.columns else 0
+            st.metric("Note Moyenne", f"{avg_rating:.2f} ⭐")
+        with col4:
+            st.metric("Avis Analysés", len(df))
+        with col5:
+            companies = df['company'].nunique() if 'company' in df.columns else 0
+            st.metric("Entreprises", companies)
+    else:
+        st.warning("Aucune donnée disponible pour l'analyse")
 
 st.markdown("---")
 st.markdown("Tableau de Bord - Satisfaction Client © 2025")

@@ -1,4 +1,11 @@
-"""Détection Data Drift"""
+"""
+Détection du data drift sur les avis Trustpilot.
+
+Le drift c'est quand la distribution des données change avec le temps.
+Par exemple si on reçoit soudainement plus d'avis négatifs.
+
+J'utilise le test de Kolmogorov-Smirnov pour comparer les distributions.
+"""
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -10,7 +17,7 @@ import seaborn as sns
 from scipy import stats
 
 class DataDriftMonitor:
-    """Moniteur drift"""
+    """Compare les données récentes aux données historiques pour détecter des changements."""
     
     def __init__(self, es_host='localhost', es_port=9200):
         self.es = Elasticsearch([{'host': es_host, 'port': es_port, 'scheme': 'http'}])
@@ -18,7 +25,7 @@ class DataDriftMonitor:
         self.reports_dir.mkdir(parents=True, exist_ok=True)
         
     def load_data(self, index_name='trustpilot_reviews', days_back=30):
-        """Charge données"""
+        """Récupère les avis depuis Elasticsearch avec scroll (pour les gros volumes)."""
         print(f"Chargement des données des {days_back} derniers jours...")
         
         try:
