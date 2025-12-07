@@ -1,4 +1,6 @@
 {
+  "python.terminal.activateEnvironment": false,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/Scripts/python.exe",
   "yaml.schemas": {
     "https://json.schemastore.org/gitlab-ci.json": ".gitlab-ci.yml"
   },
