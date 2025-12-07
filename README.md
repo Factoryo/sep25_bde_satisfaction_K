@@ -12,7 +12,7 @@ Je voulais construire un pipeline complet de données, du scraping jusqu'à l'AP
 
 - Scraping "intelligent" avec BeautifulSoup (parsing du JSON-LD embarqué dans les pages)
 - Pipeline ETL avec stockage PostgreSQL + Elasticsearch
-- Entraînement d'un modèle de sentiment (Logistic Regression, F1=0.77)
+- Entraînement d'un modèle de sentiment (Logistic Regression, F1=0.94)
 - Conteneurisation avec Docker Compose
 - Orchestration avec Airflow (DAGs quotidiens)
 
@@ -39,7 +39,7 @@ docker ps
 
 ## Données collectées
 
-J'ai scrapé **52 entreprises** et récupéré environ **39 000 avis**. Les entreprises sont variées : e-commerce (Amazon, Cdiscount, Vinted), voyage (Booking, Airbnb), services (Uber, Netflix), etc.
+J'ai scrapé **52 entreprises** et récupéré environ **79 000 avis**. Les entreprises sont variées : e-commerce (Amazon, Cdiscount, Vinted), voyage (Booking, Airbnb), services (Uber, Netflix), etc.
 
 Les données brutes sont en JSON dans `data/raw/`.
 
@@ -93,9 +93,8 @@ Réponse :
 
 ## Difficultés rencontrées
 
-1. **Trustpilot anti-scraping** : J'ai contourné en utilisant les filtres par note
-2. **Données déséquilibrées** : Beaucoup plus d'avis 5★ que 1★ → j'ai sous-échantillonné
-3. **Docker Compose lent** : 12 services c'est lourd, mais ça montre une archi "prod-like"
+1. **Trustpilot anti-scraping**
+2. **Données déséquilibrées**
 
 ## TODO / Améliorations possibles
 
