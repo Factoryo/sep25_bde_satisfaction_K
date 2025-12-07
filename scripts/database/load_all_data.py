@@ -114,13 +114,16 @@ def verify_data():
         cursor = conn.cursor()
         
         cursor.execute("SELECT COUNT(*) FROM Entreprise")
-        entreprise_count = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        entreprise_count = result[0] if result else 0
         
         cursor.execute("SELECT COUNT(*) FROM Rating")
-        rating_count = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        rating_count = result[0] if result else 0
         
         cursor.execute("SELECT COUNT(*) FROM Category")
-        category_count = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        category_count = result[0] if result else 0
         
         print(f"PostgreSQL:")
         print(f"  - {entreprise_count} entreprises")
