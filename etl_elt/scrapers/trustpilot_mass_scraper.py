@@ -17,7 +17,7 @@ class TrustpilotMassScraper:
         self.reviews_per_company = reviews_per_company
         self.session = requests.Session()
         
-        # Headers mis à jour avec Referer
+        # Headers
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
             'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -28,13 +28,13 @@ class TrustpilotMassScraper:
             'Referer': 'https://fr.trustpilot.com/',
         })
         
-        # AJOUT DES COOKIES DE SESSION POUR DÉPASSER LA LIMITE DES 10 PAGES
+        # Cookies
         trustpilot_cookies = {
             'TP.uuid': '098be84b-c197-4e9e-8713-1a4b906899ad',
             'jwt': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb25zdW1lcklkIjoiNjhlZmFjNjFmNTI5Zjk4MmUzZjg5YWU1IiwiaGFzQWNjZXB0ZWRUZXJtcyI6ZmFsc2UsImlzQmxvY2tlZEZvclJlcG9ydGluZyI6ZmFsc2UsImFjY2Vzc1Rva2VuIjoid3ZUR3A2emY0aDluTERMb2RzdnFiQzV4WWpVMSIsImF1dGhlbnRpY2F0aW9uU291cmNlIjoiZ29vZ2xlIiwiaWF0IjoxNzYwNTM3Njk4LCJleHAiOjE3NjgzMTM2OTh9.UvwVAP2HWCAuR4d9EE8Q0YHaNnYFXb8zK_AnS56yV3M'
         }
         
-        # Application des cookies à la session
+        # Session
         for cookie_name, cookie_value in trustpilot_cookies.items():
             self.session.cookies.set(cookie_name, cookie_value, domain='.trustpilot.com')
         
@@ -48,7 +48,7 @@ class TrustpilotMassScraper:
             os.makedirs(directory, exist_ok=True)
 
     def extract_from_next_data(self, soup: BeautifulSoup, company_name: str) -> Dict:
-        """Extrait les données depuis la balise __NEXT_DATA__"""
+        """Extraction NEXT_DATA"""
         try:
             next_data_script = soup.find('script', id='__NEXT_DATA__')
             if not next_data_script:
@@ -63,19 +63,19 @@ class TrustpilotMassScraper:
             return {'reviews': [], 'company_info': {}}
 
     def parse_next_data(self, data: Dict, company_name: str) -> Dict:
-        """Parse la structure NEXT_DATA"""
+        """Parse NEXT_DATA"""
         reviews = []
         company_info = {}
         
         try:
-            # Extraction des reviews
+            # Reviews
             reviews_data = data.get('props', {}).get('pageProps', {}).get('reviews', [])
             for review_data in reviews_data:
                 review = self.parse_review_json(review_data, company_name)
                 if review:
                     reviews.append(review)
             
-            # Extraction infos entreprise
+            # Entreprise
             business_unit = data.get('props', {}).get('pageProps', {}).get('businessUnit', {})
             company_info = self.parse_company_info_json(business_unit, company_name)
             
@@ -85,7 +85,7 @@ class TrustpilotMassScraper:
         return {'reviews': reviews, 'company_info': company_info}
 
     def parse_review_json(self, review_data: Dict, company_name: str) -> Optional[Dict]:
-        """Parse une review depuis le JSON"""
+        """Parse review JSON"""
         try:
             consumer = review_data.get('consumer', {})
             dates = review_data.get('dates', {})
@@ -117,7 +117,7 @@ class TrustpilotMassScraper:
             return None
 
     def parse_company_info_json(self, business_unit: Dict, company_name: str) -> Dict:
-        """Parse les infos entreprise depuis le JSON"""
+        """Parse infos entreprise"""
         company_info = {
             'company_name': company_name,
             'trustscore': str(business_unit.get('trustScore', '')),
@@ -129,13 +129,13 @@ class TrustpilotMassScraper:
         return company_info
 
     def build_url(self, company_name: str, page: int) -> str:
-        """Construit l'URL avec fr.trustpilot.com"""
+        """Construit URL"""
         company_clean = f"www.{company_name}" if not company_name.startswith('www.') else company_name
         base_url = f"https://fr.trustpilot.com/review/{company_clean}"
         return f"{base_url}?page={page}" if page > 1 else base_url
 
     def save_progress(self, company: str, current_page: int, total_reviews: int):
-        """Sauvegarde la progression du scraping"""
+        """Sauvegarde progression"""
         progress = {
             'company': company,
             'last_page': current_page,
@@ -149,7 +149,7 @@ class TrustpilotMassScraper:
             json.dump(progress, f, indent=2, ensure_ascii=False)
 
     def load_progress(self, company: str) -> Optional[Dict]:
-        """Charge la progression précédente"""
+        """Charge progression"""
         progress_file = os.path.join(self.progress_dir, f"{company}_progress.json")
         if os.path.exists(progress_file):
             with open(progress_file, 'r', encoding='utf-8') as f:
@@ -157,7 +157,7 @@ class TrustpilotMassScraper:
         return None
 
     def mark_company_completed(self, company: str, total_reviews: int):
-        """Marque une entreprise comme terminée"""
+        """Marque complété"""
         progress = {
             'company': company,
             'total_reviews': total_reviews,
@@ -170,7 +170,7 @@ class TrustpilotMassScraper:
             json.dump(progress, f, indent=2, ensure_ascii=False)
 
     def save_company_batch(self, company: str, reviews: List[Dict], batch_number: int):
-        """Sauvegarde un lot de reviews"""
+        """Sauvegarde lot"""
         batch_data = {
             'company': company,
             'batch_number': batch_number,
@@ -186,7 +186,7 @@ class TrustpilotMassScraper:
         self.logger.info(f" Lot {batch_number} sauvegardé: {len(reviews)} reviews")
 
     def scrape_company(self, company_name: str, resume: bool = True) -> Dict:
-        """Scrape une entreprise complète avec la méthode JSON"""
+        """Scrape entreprise"""
         start_page = 1
         total_reviews = 0
         batch_number = 1
@@ -224,7 +224,7 @@ class TrustpilotMassScraper:
                 
                 soup = BeautifulSoup(response.content, 'html.parser')
 
-                # Extraction via __NEXT_DATA__
+                # NEXT_DATA
                 page_data = self.extract_from_next_data(soup, company_name)
                 
                 if page == 1 and not company_info:
@@ -271,7 +271,7 @@ class TrustpilotMassScraper:
         }
 
     def scrape_companies(self, companies: List[str], resume: bool = True) -> Dict:
-        """Scrape plusieurs entreprises en séquence"""
+        """Scrape plusieurs"""
         results = {}
         
         for i, company in enumerate(companies, 1):

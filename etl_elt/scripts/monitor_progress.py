@@ -4,7 +4,7 @@ import glob
 from datetime import datetime
 
 def monitor_progress():
-    """Affiche la progression du scraping"""
+    """Progression scraping"""
     
     progress_files = glob.glob("data/progress/*_progress.json")
     batch_files = glob.glob("data/companies/*_batch_*.json")

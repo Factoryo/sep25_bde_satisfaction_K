@@ -1,7 +1,4 @@
-"""
-Script pour charger les avis clients dans Elasticsearch
-À partir des données JSON scrapées de Trustpilot
-"""
+"""Chargement Elasticsearch"""
 import json
 from elasticsearch import Elasticsearch, helpers
 from pathlib import Path
@@ -18,29 +15,29 @@ logger = logging.getLogger(__name__)
 
 class ElasticsearchLoader:
     def __init__(self, host='localhost', port=9200, scheme='http'):
-        """Initialiser la connexion Elasticsearch"""
-        # Essayer avec et sans authentification
+        """Init connexion"""
+        # Auth
         try:
             self.es = Elasticsearch(
                 [{'host': host, 'port': port, 'scheme': scheme}],
                 basic_auth=('elastic', 'elastic123')
             )
             if not self.es.ping():
-                # Réessayer sans authentification
+                # Sans auth
                 self.es = Elasticsearch(
                     [{'host': host, 'port': port, 'scheme': scheme}]
                 )
         except:
-            # Fallback sans authentification
+            # Fallback
             self.es = Elasticsearch(
                 [{'host': host, 'port': port, 'scheme': scheme}]
             )
         self.index_name = 'trustpilot_reviews'
     
     def check_connection(self) -> bool:
-        """Vérifier la connexion à Elasticsearch"""
+        """Vérif connexion"""
         try:
-            # Utiliser info() plutôt que ping() car ping() peut retourner 400
+            # Info
             info = self.es.info()
             if info:
                 logger.info("Connexion à Elasticsearch établie")
@@ -54,7 +51,7 @@ class ElasticsearchLoader:
             return False
     
     def create_index(self):
-        """Créer l'index avec le mapping approprié"""
+        """Crée index"""
         mapping = {
             "settings": {
                 "number_of_shards": 1,
@@ -140,11 +137,11 @@ class ElasticsearchLoader:
             return False
     
     def load_json_files(self, data_dir: str) -> List[Dict]:
-        """Charger tous les fichiers JSON du répertoire"""
+        """Charge JSON"""
         data_dir = Path(data_dir)
         all_reviews = []
         
-        # Chercher les fichiers *_reviews.json et *_test.json
+        # Fichiers
         json_files = list(data_dir.glob("*_reviews.json")) + list(data_dir.glob("*_test.json"))
         
         for json_file in json_files:
@@ -155,7 +152,7 @@ class ElasticsearchLoader:
                     company_info = data.get('company_info', {})
                     reviews = data.get('reviews', [])
                     
-                    # Enrichir chaque avis avec les infos de l'entreprise
+                    # Enrichir
                     for review in reviews:
                         review['company_name'] = company_info.get('company_name', 'Unknown')
                         review['company_url'] = company_info.get('company_url', '')
@@ -170,9 +167,9 @@ class ElasticsearchLoader:
         return all_reviews
     
     def prepare_bulk_actions(self, reviews: List[Dict]):
-        """Préparer les actions pour bulk insert"""
+        """Prépare bulk"""
         for review in reviews:
-            # Générer un ID unique pour l'avis
+            # ID
             review_id = review.get('review_link', '').split('/')[-1]
             if not review_id:
                 review_id = f"{review.get('company_name', 'unknown')}_{review.get('reviewer_name', 'anon')}_{review.get('date', 'unknown')}"
@@ -185,7 +182,7 @@ class ElasticsearchLoader:
             }
     
     def bulk_load_reviews(self, data_dir: str):
-        """Charger tous les avis dans Elasticsearch"""
+        """Bulk load"""
         if not self.check_connection():
             return False
         
@@ -211,14 +208,14 @@ class ElasticsearchLoader:
             logger.info(f"{success} avis chargés avec succès")
             if failed:
                 logger.warning(f"{len(failed)} avis ont échoué")
-                # Afficher quelques exemples d'erreurs
+                # Erreurs
                 for i, error in enumerate(failed[:3]):
                     logger.error(f"  Exemple d'erreur {i+1}: {error}")
             
             # Rafraîchir l'index
             self.es.indices.refresh(index=self.index_name)
             
-            # Afficher les statistiques
+            # Stats
             count = self.es.count(index=self.index_name)
             logger.info(f"Total avis dans l'index: {count['count']}")
             
@@ -229,7 +226,7 @@ class ElasticsearchLoader:
             return False
     
     def get_index_stats(self):
-        """Obtenir les statistiques de l'index"""
+        """Stats index"""
         try:
             stats = self.es.indices.stats(index=self.index_name)
             count = self.es.count(index=self.index_name)
@@ -244,9 +241,9 @@ class ElasticsearchLoader:
             logger.error(f"Erreur statistiques: {e}")
     
     def sample_query(self):
-        """Exemple de requête pour tester"""
+        """Requête exemple"""
         try:
-            # Top 10 avis les mieux notés
+            # Top 10
             query = {
                 "query": {
                     "match_all": {}
@@ -273,7 +270,7 @@ class ElasticsearchLoader:
 
 
 def main():
-    """Point d'entrée principal"""
+    """Point entrée"""
     import argparse
     
     parser = argparse.ArgumentParser(description='Charger les avis Trustpilot dans Elasticsearch')

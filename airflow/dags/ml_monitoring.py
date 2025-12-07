@@ -27,7 +27,7 @@ dag = DAG(
 )
 
 def run_data_drift_detection():
-    """Exécuter la détection de data drift"""
+    """Détection drift"""
     sys.path.insert(0, '/app/scripts/ml')
     from data_drift_monitor import DataDriftMonitor
     
@@ -155,7 +155,7 @@ def send_daily_report(**context):
     report = "\n".join(report_lines)
     print(report)
     
-    # Sauvegarder le rapport
+    # Save
     with open(f'/app/data/logs/daily_report_{datetime.now().strftime("%Y%m%d")}.txt', 'w') as f:
         f.write(report)
     

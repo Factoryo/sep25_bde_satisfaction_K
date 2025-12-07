@@ -9,7 +9,7 @@ from collections import Counter
 import statistics
 
 def analyze_scraped_data():
-    """Analyse complète des données scrapées"""
+    """Analyse données"""
     
     raw_dir = Path("data/raw")
     

@@ -1,7 +1,4 @@
-"""
-Script pour créer un modèle de démonstration simple
-À utiliser uniquement pour tester l'API sans entraîner sur toutes les données
-"""
+"""Modèle démo"""
 import joblib
 import json
 from datetime import datetime
@@ -16,7 +13,7 @@ print("Création d'un modèle de démonstration...")
 models_dir = Path("scripts/ml/models")
 models_dir.mkdir(parents=True, exist_ok=True)
 
-# Données d'exemple pour entraîner un modèle simple
+# Données
 sample_texts = [
     "excellent service rapide satisfait",
     "très bon produit qualité",
@@ -35,27 +32,27 @@ sample_labels = [
     "neutre", "neutre", "neutre"
 ]
 
-# Créer et entraîner le vectoriseur TF-IDF
+# TF-IDF
 print("Création du vectoriseur TF-IDF...")
 vectorizer = TfidfVectorizer(max_features=100, ngram_range=(1, 2))
 X = vectorizer.fit_transform(sample_texts)
 
-# Créer et entraîner le modèle
+# Modèle
 print("Entraînement du modèle...")
 model = LogisticRegression(random_state=42, max_iter=1000)
 model.fit(X, sample_labels)
 
-# Sauvegarder le modèle
+# Save modèle
 model_path = models_dir / "sentiment_model_best.pkl"
 joblib.dump(model, model_path)
 print(f"Modèle sauvégardé: {model_path}")
 
-# Sauvegarder le vectoriseur
+# Save vectorizer
 vectorizer_path = models_dir / "tfidf_vectorizer.pkl"
 joblib.dump(vectorizer, vectorizer_path)
 print(f"Vectoriseur sauvégardé: {vectorizer_path}")
 
-# Créer les métadonnées
+# Metadata
 metadata = {
     "best_model": "LogisticRegression",
     "f1_score": 0.85,

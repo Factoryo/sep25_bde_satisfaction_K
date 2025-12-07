@@ -1,7 +1,4 @@
-"""
-Script de détection et rapport de dérive des données (Data Drift)
-Analyse les changements dans la distribution des données au fil du temps
-"""
+"""Détection Data Drift"""
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
@@ -13,9 +10,7 @@ import seaborn as sns
 from scipy import stats
 
 class DataDriftMonitor:
-    """
-    Moniteur de dérive des données pour les avis Trustpilot
-    """
+    """Moniteur drift"""
     
     def __init__(self, es_host='localhost', es_port=9200):
         self.es = Elasticsearch([{'host': es_host, 'port': es_port, 'scheme': 'http'}])
@@ -23,13 +18,11 @@ class DataDriftMonitor:
         self.reports_dir.mkdir(parents=True, exist_ok=True)
         
     def load_data(self, index_name='trustpilot_reviews', days_back=30):
-        """
-        Charger les données récentes et historiques
-        """
+        """Charge données"""
         print(f"Chargement des données des {days_back} derniers jours...")
         
         try:
-            # Charger toutes les données
+            # Load
             response = self.es.search(
                 index=index_name,
                 scroll='2m',
@@ -50,14 +43,14 @@ class DataDriftMonitor:
             
             df = pd.DataFrame([hit['_source'] for hit in reviews])
             
-            # Convertir created_at en datetime si disponible
+            # Date
             if 'created_at' in df.columns:
                 df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
                 df['date'] = df['created_at']
             elif 'date' in df.columns:
                 df['date'] = pd.to_datetime(df['date'], errors='coerce')
             else:
-                # Si pas de date, utiliser la date actuelle
+                # Default
                 df['date'] = datetime.now()
             
             print(f"{len(df)} avis chargés")
@@ -68,9 +61,7 @@ class DataDriftMonitor:
             return pd.DataFrame()
     
     def split_data_by_time(self, df, split_ratio=0.7):
-        """
-        Séparer les données en référence (ancien) et courant (récent)
-        """
+        """Split données"""
         df_sorted = df.sort_values('date')
         split_idx = int(len(df_sorted) * split_ratio)
         
@@ -85,14 +76,12 @@ class DataDriftMonitor:
         return df_reference, df_current
     
     def detect_rating_drift(self, df_ref, df_curr):
-        """
-        Détecter la dérive dans la distribution des ratings
-        """
+        """Dérive ratings"""
         print("\n" + "="*80)
         print("ANALYSE DE DÉRIVE - RATINGS")
         print("="*80)
         
-        # Distribution des ratings
+        # Distribution
         ref_ratings = df_ref['rating'].value_counts(normalize=True).sort_index()
         curr_ratings = df_curr['rating'].value_counts(normalize=True).sort_index()
         
@@ -105,7 +94,7 @@ class DataDriftMonitor:
         for rating, pct in curr_ratings.items():
             print(f"    {rating}★: {pct:.2%}")
         
-        # Test de Kolmogorov-Smirnov pour détecter les différences
+        # Test KS
         ks_statistic, ks_pvalue = stats.ks_2samp(df_ref['rating'], df_curr['rating'])
         
         print(f"\nTest de Kolmogorov-Smirnov:")
@@ -119,7 +108,7 @@ class DataDriftMonitor:
         else:
             print(f"   Pas de dérive significative (p >= 0.05)")
         
-        # Calculer les changements moyens
+        # Stats
         mean_ref = df_ref['rating'].mean()
         mean_curr = df_curr['rating'].mean()
         mean_change = mean_curr - mean_ref
@@ -141,14 +130,12 @@ class DataDriftMonitor:
         }
     
     def detect_text_length_drift(self, df_ref, df_curr):
-        """
-        Détecter la dérive dans la longueur des textes
-        """
+        """Dérive longueur"""
         print("\n" + "="*80)
         print("ANALYSE DE DÉRIVE - LONGUEUR DES TEXTES")
         print("="*80)
         
-        # Calculer les longueurs
+        # Longueurs
         df_ref['text_length'] = df_ref['content'].fillna('').str.len()
         df_curr['text_length'] = df_curr['content'].fillna('').str.len()
         
@@ -185,9 +172,7 @@ class DataDriftMonitor:
         }
     
     def detect_company_distribution_drift(self, df_ref, df_curr):
-        """
-        Détecter les changements dans la distribution des entreprises
-        """
+        """Dérive entreprises"""
         print("\n" + "="*80)
         print("ANALYSE DE DÉRIVE - DISTRIBUTION DES ENTREPRISES")
         print("="*80)
@@ -204,7 +189,7 @@ class DataDriftMonitor:
         for comp, pct in curr_companies.head(5).items():
             print(f"   {comp}: {pct:.2%}")
         
-        # Détecter les nouvelles entreprises ou celles qui ont disparu
+        # Changements
         ref_set = set(ref_companies.index)
         curr_set = set(curr_companies.index)
         
@@ -227,9 +212,7 @@ class DataDriftMonitor:
         }
     
     def generate_visualization(self, df_ref, df_curr, report_data):
-        """
-        Générer des visualisations pour le rapport
-        """
+        """Génère graphiques"""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         viz_path = self.reports_dir / f'drift_visualization_{timestamp}.png'
         
@@ -316,22 +299,20 @@ class DataDriftMonitor:
         return str(viz_path)
     
     def generate_report(self):
-        """
-        Générer le rapport complet de data drift
-        """
+        """Génère rapport"""
         print("\n" + "="*80)
         print("GÉNÉRATION DU RAPPORT DE DATA DRIFT")
         print("="*80)
         print(f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         
-        # Charger les données
+        # Données
         df = self.load_data()
         
         if df.empty:
             print("❌ Aucune donnée disponible")
             return None
         
-        # Séparer en référence et courant
+        # Split
         df_ref, df_curr = self.split_data_by_time(df)
         
         # Analyses de dérive
@@ -364,11 +345,11 @@ class DataDriftMonitor:
             )
         }
         
-        # Générer visualisation
+        # Viz
         viz_path = self.generate_visualization(df_ref, df_curr, report)
         report['visualization_path'] = viz_path
         
-        # Sauvegarder le rapport JSON
+        # Save JSON
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         report_path = self.reports_dir / f'data_drift_report_{timestamp}.json'
         
@@ -381,7 +362,7 @@ class DataDriftMonitor:
         print(f"Rapport JSON: {report_path}")
         print(f"Visualisation: {viz_path}")
         
-        # Afficher le résumé final
+        # Résumé
         print("\n" + "="*80)
         print("RÉSUMÉ EXÉCUTIF")
         print("="*80)

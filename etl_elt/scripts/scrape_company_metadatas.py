@@ -5,15 +5,7 @@ from bs4 import BeautifulSoup as bs
 
 
 def get_company_data_from_trustpilot(company_name):
-    """
-    Get HTML code from Trustpilot website review page
-
-    Args:
-        company_name (str): Name of the company.
-
-    Returns:
-        str: Text content of the HTML code
-    """
+    """Récupère HTML"""
 
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -26,15 +18,7 @@ def get_company_data_from_trustpilot(company_name):
 
 
 def parse_company_data(company_data_html):
-    """
-    Parses HTML content to extract company information
-
-    Args:
-        company_data_html (bytes): bytes object containing the HTML content
-
-    Returns:
-        dict: company information
-    """
+    """Parse HTML"""
 
     soup = bs(company_data_html, "lxml")
 
@@ -77,48 +61,31 @@ def parse_company_data(company_data_html):
 
 
 def create_company_data_dataframe(company_list):
-    """
-    Collect information of companies and store it in a dataframe.
-
-    Args:
-        company_list (list(str)): list of company names
-
-    Returns:
-        dataFrame: company information
-    """
-    # create an empty dataframe to store gathered company information
+    """Crée dataframe"""
+    # DataFrame
     temp_df = pd.DataFrame()
 
-    # loop to get company information and store it in companies_df dataframe
+    # Boucle
     for company in company_list:
-        # collect and parse information of the company
+        # Parse
         company_html = get_company_data_from_trustpilot(company)
         company_row = parse_company_data(company_html)
-        # store collected information as a new raw in companies_df dataframe
+        # Concat
         temp_df = pd.concat([temp_df, pd.DataFrame([company_row])], ignore_index=False)
 
-    # set the companies_df index to 'id' column
+    # Index
     temp_df = temp_df.set_index('id')
 
     return temp_df
 
 
 def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
-    """
-    Launch information about companies from csv file in a dataframe.
-    Stores this df in Postgresql server
-
-    Args:
-        csv_file (str): path to CSV file
-        conn: db connection object
-    Returns:
-        nothing
-    """
+    """Insert SQL"""
     companies_df = pd.read_csv(csv_file, dtype='str')
     cur= conn.cursor()
 
     for company in companies_df.itertuples(index=False):
-        # step 1: insert category in Category table if not already exists
+        # 1. Catégorie
         sql_insert_request = """
                              INSERT INTO Category (category_name)
                              VALUES ('{category}')
@@ -129,7 +96,7 @@ def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
 
         cur.execute(sql_insert_request)
 
-        # step 2: insert entreprise in Entreprise table if not already exists
+        # 2. Entreprise
         sql_insert_request = """
                              INSERT INTO Entreprise (entreprise_id, entreprise_name, profileImageUrl, mail, phone, web_site, category_id)
                              VALUES ('{entreprise_id}','{entreprise_name}','{profileImageUrl}','{mail}','{phone}','{web_site}',(select category_id from Category where category_name = '{category}'))
@@ -152,7 +119,7 @@ def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
         
         cur.execute(sql_insert_request)
 
-        # step 3: insert entreprise address details in Address table
+        # 3. Adresse
         sql_insert_request = """
                              INSERT INTO Address (entreprise_id, street, zip_code, city, country)
                              VALUES ('{entreprise_id}','{street}','{zip_code}','{city}','{country}')
@@ -171,7 +138,7 @@ def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
                                         )
         cur.execute(sql_insert_request)
 
-        # step 4: insert entreprise rating details in rating table
+        # 4. Rating
         sql_insert_request = """
                              INSERT INTO Rating (entreprise_id, one_star, two_star, three_star, four_star, five_star, trustScore)
                              VALUES ('{entreprise_id}','{one_star}','{two_star}','{three_star}','{four_star}','{five_star}','{trustScore}')

@@ -1,13 +1,9 @@
-"""
-FastAPI application for Supply Chain Satisfaction Analysis
-"""
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 import logging
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -17,7 +13,6 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -26,7 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Pydantic models
 class Review(BaseModel):
     id: Optional[int] = None
     company: str
@@ -43,7 +37,7 @@ class SatisfactionStats(BaseModel):
 
 @app.get("/")
 async def root():
-    """Root endpoint"""
+    """Accueil"""
     return {
         "message": "Welcome to Supply Chain Satisfaction API",
         "version": "1.0.0",
@@ -52,13 +46,13 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Health check endpoint"""
+    """Santé"""
     return {"status": "healthy"}
 
 @app.get("/api/stats", response_model=SatisfactionStats)
 async def get_stats():
-    """Get satisfaction statistics"""
-    # TODO: Implement actual stats from Elasticsearch
+    """Statistiques"""
+    # TODO
     return SatisfactionStats(
         average_rating=4.2,
         total_reviews=1000,
@@ -69,8 +63,6 @@ async def get_stats():
 
 @app.get("/api/reviews", response_model=List[Review])
 async def get_reviews(limit: int = 10, offset: int = 0):
-    """Get list of reviews"""
-    # TODO: Implement actual data retrieval from Elasticsearch
     sample_reviews = [
         Review(
             id=1,
@@ -91,15 +83,11 @@ async def get_reviews(limit: int = 10, offset: int = 0):
 
 @app.post("/api/reviews", response_model=Review)
 async def create_review(review: Review):
-    """Create a new review"""
-    # TODO: Implement actual data storage to Elasticsearch
     logger.info(f"Creating review for company: {review.company}")
     return review
 
 @app.get("/api/companies")
 async def get_companies():
-    """Get list of companies"""
-    # TODO: Implement actual data retrieval
     return {
         "companies": [
             {"name": "Company A", "review_count": 450},

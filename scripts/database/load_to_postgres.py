@@ -1,7 +1,4 @@
-"""
-Script pour charger les données d'entreprises dans PostgreSQL
-À partir des données JSON scrapées de Trustpilot
-"""
+"""Chargement PostgreSQL"""
 import json
 import psycopg2
 from psycopg2.extras import execute_values
@@ -20,7 +17,7 @@ logger = logging.getLogger(__name__)
 class PostgresLoader:
     def __init__(self, host='localhost', port=5432, database='trustpilot_db', 
                  user='trustpilot_user', password='trustpilot_pass'):
-        """Initialise la connexion PostgreSQL"""
+        """Init"""
         self.conn_params = {
             'host': host,
             'port': port,
@@ -32,7 +29,7 @@ class PostgresLoader:
         self.cursor = None
     
     def connect(self):
-        """Établir la connexion à PostgreSQL"""
+        """Connexion"""
         try:
             self.conn = psycopg2.connect(**self.conn_params)
             self.cursor = self.conn.cursor()
@@ -43,7 +40,7 @@ class PostgresLoader:
             return False
     
     def close(self):
-        """Fermer la connexion"""
+        """Fermeture"""
         if self.cursor:
             self.cursor.close()
         if self.conn:
@@ -51,11 +48,11 @@ class PostgresLoader:
             logger.info("Connexion PostgreSQL fermée")
     
     def load_json_files(self, data_dir: str) -> List[Dict]:
-        """Charger tous les fichiers JSON du répertoire"""
+        """Charge JSON"""
         data_dir = Path(data_dir)
         companies_data = []
         
-        # Chercher les fichiers *_reviews.json et *_test.json
+        # Fichiers
         json_files = list(data_dir.glob("*_reviews.json")) + list(data_dir.glob("*_test.json"))
         
         for json_file in json_files:
@@ -71,7 +68,7 @@ class PostgresLoader:
         return companies_data
     
     def insert_category(self, category_name: str) -> int:
-        """Insérer une catégorie et retourner son ID"""
+        """Insert catégorie"""
         if not category_name:
             category_name = "Unknown"
         
@@ -92,14 +89,14 @@ class PostgresLoader:
             return None
     
     def insert_entreprise(self, company_data: Dict, category_id: int):
-        """Insérer les données d'une entreprise"""
+        """Insert entreprise"""
         try:
-            # Générer un ID unique pour l'entreprise
+            # ID
             entreprise_id = company_data.get('company_url', '').replace('https://fr.trustpilot.com/review/', '')
             if not entreprise_id:
                 entreprise_id = company_data.get('company_name', 'unknown').lower().replace(' ', '-')
             
-            # Insérer dans Entreprise
+            # Insert
             self.cursor.execute(
                 """
                 INSERT INTO Entreprise (entreprise_id, entreprise_name, mail, phone, web_site, category_id)
@@ -118,12 +115,11 @@ class PostgresLoader:
                 )
             )
             
-            # Insérer dans Rating
+            # Ratings
             total_reviews = company_data.get('total_reviews', 0)
             trustscore = company_data.get('trustscore', 0.0) or company_data.get('trust_score', 0.0)
             
-            # Estimation de la distribution des étoiles (si pas disponible)
-            # On utilise une distribution basée sur le trustscore
+            # Distribution estimée
             if trustscore >= 4.5:
                 five_star = int(total_reviews * 0.7)
                 four_star = int(total_reviews * 0.2)
@@ -158,7 +154,7 @@ class PostgresLoader:
                 (entreprise_id, float(trustscore), one_star, two_star, three_star, four_star, five_star)
             )
             
-            # Insérer dans Address (si disponible)
+            # Adresse
             if 'address' in company_data or 'location' in company_data:
                 address = company_data.get('address', company_data.get('location', {}))
                 self.cursor.execute(
@@ -186,7 +182,7 @@ class PostgresLoader:
             return False
     
     def load_companies_to_postgres(self, data_dir: str):
-        """Charger toutes les entreprises dans PostgreSQL"""
+        """Charge PostgreSQL"""
         if not self.connect():
             return False
         
@@ -197,7 +193,7 @@ class PostgresLoader:
             success_count = 0
             
             for company in companies_data:
-                # Déterminer la catégorie
+                # Catégorie
                 categories = company.get('categories', [])
                 category_name = categories[0] if categories else "General"
                 
@@ -209,7 +205,7 @@ class PostgresLoader:
                     if self.insert_entreprise(company, category_id):
                         success_count += 1
             
-            # Commit toutes les transactions
+            # Commit
             self.conn.commit()
             logger.info(f"✓ {success_count}/{len(companies_data)} entreprises chargées avec succès")
             
@@ -225,7 +221,7 @@ class PostgresLoader:
 
 
 def main():
-    """Point d'entrée principal"""
+    """Point entrée"""
     import argparse
     
     parser = argparse.ArgumentParser(description='Charger les données Trustpilot dans PostgreSQL')

@@ -1,6 +1,4 @@
-"""
-Fonctions utilitaires pour le scraping Trustpilot
-"""
+"""Utilitaires scraping"""
 
 import json
 import re
@@ -12,20 +10,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 def clean_text(text: str) -> str:
-    """Nettoie le texte des caractères indésirables"""
+    """Nettoie texte"""
     if not text:
         return ""
     
-    # Supprime les espaces multiples et les sauts de ligne
+    # Espaces
     text = re.sub(r'\s+', ' ', text)
-    # Supprime les caractères de contrôle
+    # Nettoyage
     text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
     return text.strip()
 
 def parse_rating(rating_str: str) -> float:
-    """Parse une chaîne de rating en float"""
+    """Parse rating"""
     try:
-        # Supporte "4", "4.5", "4/5", etc.
+        # Formats
         if '/' in rating_str:
             numerator, denominator = rating_str.split('/')
             return float(numerator) / float(denominator) * 5
@@ -36,7 +34,7 @@ def parse_rating(rating_str: str) -> float:
         return 0.0
 
 def save_to_csv(data: List[Dict], filename: str):
-    """Sauvegarde les données en CSV"""
+    """Sauvegarde CSV"""
     if not data:
         logger.warning("Aucune donnée à sauvegarder en CSV")
         return
@@ -51,17 +49,17 @@ def save_to_csv(data: List[Dict], filename: str):
     logger.info(f"Données sauvegardées en CSV: {filename}")
 
 def validate_company_name(company: str) -> bool:
-    """Valide le nom d'entreprise pour Trustpilot"""
-    # Trustpilot utilise généralement le domaine
+    """Valide nom"""
+    # Domaine
     pattern = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return bool(re.match(pattern, company))
 
 def generate_report(scraping_results: Dict[str, Any]) -> Dict[str, Any]:
-    """Génère un rapport de scraping"""
+    """Génère rapport"""
     total_reviews = len(scraping_results.get('reviews', []))
     company_info = scraping_results.get('company_info', {})
     
-    # Calcul des statistiques
+    # Stats
     ratings = [review.get('rating', 0) for review in scraping_results.get('reviews', [])]
     avg_rating = sum(ratings) / len(ratings) if ratings else 0
     
@@ -77,13 +75,13 @@ def generate_report(scraping_results: Dict[str, Any]) -> Dict[str, Any]:
     return report
 
 def export_formats(data: Dict[str, Any], base_filename: str):
-    """Exporte les données dans multiple formats"""
+    """Export multi-formats"""
     # JSON
     json_filename = f"{base_filename}.json"
     with open(json_filename, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
     
-    # CSV (reviews seulement)
+    # CSV
     if data.get('reviews'):
         csv_filename = f"{base_filename}_reviews.csv"
         save_to_csv(data['reviews'], csv_filename)

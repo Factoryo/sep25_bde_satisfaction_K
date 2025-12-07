@@ -10,7 +10,7 @@ sys.path.insert(0, src_dir)
 
 from scrapers.trustpilot_reviews_scraper import TrustpilotReviewsScraper
 
-# Configuration du logging
+# Logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -21,9 +21,9 @@ logging.basicConfig(
 )
 
 def main():
-    """Script principal pour le scraping massif (version standalone)"""
+    """Scraping massif"""
     
-    # Liste étendue d'entreprises avec >10000 avis
+    # Entreprises
     COMPANIES = [
         # E-commerce & Retail
         "amazon.com",
@@ -104,27 +104,27 @@ def main():
     print(f"🔄 Stratégie: Multi-filtres par étoiles (5★ → 1★)")
     print("=" * 60)
     
-    # Créer les répertoires nécessaires
+    # Dossiers
     os.makedirs("data/raw", exist_ok=True)
     os.makedirs("data/processed", exist_ok=True)
     os.makedirs("logs", exist_ok=True)
     
     results = {}
     
-    # Scraper chaque entreprise avec la stratégie multi-filtres
+    # Scraping
     for i, company_domain in enumerate(COMPANIES, 1):
         print(f"\n{'='*60}")
         print(f"🏢 Entreprise {i}/{len(COMPANIES)}: {company_domain}")
         print(f"{'='*60}")
         
         try:
-            # Construire l'URL Trustpilot
+            # URL
             company_url = f"https://fr.trustpilot.com/review/{company_domain}"
             
             # Créer un scraper
             scraper = TrustpilotReviewsScraper(delay=2.0)
             
-            # Scraper avec la stratégie multi-filtres
+            # Scrape
             print(f"🔄 Démarrage du scraping avec multi-filtres...")
             reviews = scraper.scrape_all_reviews(
                 company_url=company_url,
@@ -132,10 +132,10 @@ def main():
                 max_reviews=10000
             )
             
-            # Sauvegarder les résultats
+            # Save
             output_file = f"data/raw/{company_domain.replace('.', '_')}_reviews.json"
             
-            # Construire le fichier avec infos complètes
+            # Data
             output_data = {
                 'company_info': scraper.company_info,
                 'reviews': reviews,
@@ -156,7 +156,7 @@ def main():
             print(f"✅ {company_domain}: {len(reviews)} reviews scrapées")
             print(f"💾 Sauvegardé dans: {output_file}")
             
-            # Pause entre les entreprises
+            # Pause
             if i < len(COMPANIES):
                 import time
                 import random
@@ -175,7 +175,7 @@ def main():
     
     # Démarrer le scraping
     try:
-        # Générer un rapport final
+        # Rapport
         generate_final_report(results)
         
     except KeyboardInterrupt:
@@ -186,7 +186,7 @@ def main():
         logging.error(f"Erreur générale: {e}", exc_info=True)
 
 def generate_final_report(results: dict):
-    """Génère un rapport final du scraping"""
+    """Rapport final"""
     report = {
         'generated_at': datetime.now().isoformat(),
         'companies_scraped': {},
@@ -214,7 +214,7 @@ def generate_final_report(results: dict):
         elif status == 'failed':
             report['summary']['failed_companies'] += 1
     
-    # Sauvegarder le rapport
+    # Save
     report_file = f"data/scraping_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
     with open(report_file, 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
@@ -228,7 +228,7 @@ def generate_final_report(results: dict):
     print(f"📝 Reviews totales: {report['summary']['total_reviews']}")
     print(f"📄 Rapport sauvegardé: {report_file}")
     
-    # Détail par entreprise
+    # Détail
     print(f"\n📋 DÉTAIL PAR ENTREPRISE:")
     for company, data in report['companies_scraped'].items():
         status_icon = "✅" if data['status'] == 'completed' else "❌"

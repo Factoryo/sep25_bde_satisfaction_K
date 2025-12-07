@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 
 def check_scraping_progress():
-    """Vérifie la progression du scraping massif"""
+    """Vérifie progression"""
     
     print("📊 ÉTAT DU SCRAPING MASSIF")
     print("=" * 70)

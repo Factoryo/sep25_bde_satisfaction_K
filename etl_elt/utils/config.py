@@ -1,11 +1,9 @@
-"""
-Configuration du projet de scraping Trustpilot
-"""
+"""Config scraping"""
 
 import os
 from datetime import datetime
 
-# Configuration du logging
+# Logging
 LOGGING_CONFIG = {
     'level': 'INFO',
     'format': '%(asctime)s - %(name)s - %(levelname)s - %(message)s',

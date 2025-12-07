@@ -1,13 +1,8 @@
-"""
-Script de test automatique pour valider le déploiement de la ML API
-Vérifie tous les endpoints et la qualité des prédictions
-"""
 import requests
 import time
 import sys
 from pathlib import Path
 
-# Configuration
 API_URL = "http://localhost:8002"
 TIMEOUT = 10
 
@@ -31,7 +26,6 @@ def print_info(message):
     print(f"{Colors.BLUE}ℹ {message}{Colors.END}")
 
 def test_health_check():
-    """Test du endpoint /health"""
     print_info("Test 1/7: Health Check")
     try:
         response = requests.get(f"{API_URL}/health", timeout=TIMEOUT)
@@ -58,7 +52,6 @@ def test_health_check():
         return False
 
 def test_predict_single():
-    """Test du endpoint /api/ml/predict"""
     print_info("Test 2/7: Prédiction Simple")
     
     test_cases = [
@@ -104,13 +97,11 @@ def test_predict_single():
             
             data = response.json()
             
-            # Vérifier les champs requis
             required_fields = ['sentiment', 'confidence', 'probabilities', 'cleaned_text']
             if not all(field in data for field in required_fields):
                 print_error(f"  Test {i} - Champs manquants dans la réponse")
                 continue
             
-            # Vérifier le sentiment
             predicted = data['sentiment']
             expected = test_case['expected_sentiment']
             confidence = data['confidence']
@@ -132,7 +123,6 @@ def test_predict_single():
         return success_count > 0
 
 def test_predict_batch():
-    """Test du endpoint /api/ml/predict-batch"""
     print_info("Test 3/7: Prédictions Batch")
     
     reviews = [
@@ -175,7 +165,6 @@ def test_predict_batch():
         return False
 
 def test_model_info():
-    """Test du endpoint /api/ml/model-info"""
     print_info("Test 4/7: Informations du Modèle")
     
     try:
@@ -206,7 +195,6 @@ def test_model_info():
         return False
 
 def test_model_performance():
-    """Test du endpoint /api/ml/model-performance"""
     print_info("Test 5/7: Performance des Modèles")
     
     try:
@@ -243,10 +231,8 @@ def test_model_performance():
         return False
 
 def test_error_handling():
-    """Test de la gestion des erreurs"""
     print_info("Test 6/7: Gestion des Erreurs")
     
-    # Test avec texte vide
     try:
         response = requests.post(
             f"{API_URL}/api/ml/predict",
@@ -264,7 +250,6 @@ def test_error_handling():
         print_error(f"Erreur: {e}")
         return False
     
-    # Test avec JSON invalide
     try:
         response = requests.post(
             f"{API_URL}/api/ml/predict",
@@ -284,7 +269,6 @@ def test_error_handling():
         return False
 
 def test_performance():
-    """Test de performance"""
     print_info("Test 7/7: Performance")
     
     test_review = {
@@ -336,10 +320,8 @@ def test_performance():
     return True
 
 def check_prerequisites():
-    """Vérifier que les modèles existent"""
     print_info("Vérification des prérequis...")
     
-    # Obtenir le chemin absolu depuis le répertoire du script
     script_dir = Path(__file__).parent
     models_dir = script_dir.parent / "scripts" / "ml" / "models"
     
@@ -367,15 +349,13 @@ def check_prerequisites():
     return True
 
 def main():
-    """Exécuter tous les tests"""
     print("\n" + "="*70)
-    print(" 🧪 TESTS DE VALIDATION - ML API")
+    print("TESTS DE VALIDATION - ML API")
     print("="*70 + "\n")
     
     print(f"URL de l'API: {API_URL}")
     print(f"Timeout: {TIMEOUT}s\n")
     
-    # Vérifier les prérequis
     if not check_prerequisites():
         print("\n" + "="*70)
         print_error("ÉCHEC: Prérequis non satisfaits")
@@ -384,7 +364,6 @@ def main():
     
     print()
     
-    # Exécuter les tests
     tests = [
         ("Health Check", test_health_check),
         ("Prédiction Simple", test_predict_single),
@@ -409,7 +388,7 @@ def main():
     
     # Résumé
     print("="*70)
-    print(" 📊 RÉSUMÉ DES TESTS")
+    print("RÉSUMÉ DES TESTS")
     print("="*70 + "\n")
     
     passed = sum(1 for _, result in results if result)
@@ -425,17 +404,17 @@ def main():
     if passed == total:
         print_success(f"TOUS LES TESTS RÉUSSIS ({passed}/{total})")
         print("="*70 + "\n")
-        print_success("🎉 L'API ML est prête pour la production!")
+        print_success("L'API ML est prête pour la production")
         sys.exit(0)
     else:
         print_warning(f"TESTS RÉUSSIS: {passed}/{total}")
         print("="*70 + "\n")
         
         if passed >= total * 0.7:
-            print_warning("⚠️  Certains tests ont échoué, mais l'API est fonctionnelle")
+            print_warning("Certains tests ont échoué, mais l'API est fonctionnelle")
             sys.exit(0)
         else:
-            print_error("❌ Trop de tests ont échoué, vérifier la configuration")
+            print_error("Trop de tests ont échoué, vérifier la configuration")
             sys.exit(1)
 
 if __name__ == "__main__":

@@ -25,7 +25,7 @@ class TrustpilotJSONLDScraper:
         self.logger = logging.getLogger(__name__)
 
     def extract_company_info(self, soup: BeautifulSoup, company_name: str) -> Dict:
-        """Extrait les informations de l'entreprise"""
+        """Infos entreprise"""
         company_info = {
             'company_name': company_name,
             'trustscore': '',
@@ -34,12 +34,12 @@ class TrustpilotJSONLDScraper:
         }
         
         try:
-            # TrustScore
+            # Score
             trustscore_element = soup.select_one('span.CDS_Typography_heading-l__dd9b51')
             if trustscore_element:
                 company_info['trustscore'] = trustscore_element.get_text(strip=True)
             
-            # Nombre total de reviews
+            # Avis
             reviews_element = soup.find('span', string=re.compile(r'reviews', re.I))
             if reviews_element:
                 text = reviews_element.get_text(strip=True)
@@ -55,7 +55,7 @@ class TrustpilotJSONLDScraper:
         return company_info
 
     def extract_reviews_from_html(self, soup: BeautifulSoup, company_name: str) -> List[Dict]:
-        """Extrait les reviews avec les sélecteurs Trustpilot"""
+        """Extraction avis"""
         reviews = []
 
         review_elements = soup.select('article.styles_reviewCard__meSdm')
@@ -74,7 +74,7 @@ class TrustpilotJSONLDScraper:
         return reviews
 
     def parse_review_element_final(self, element, company_name: str) -> Dict:
-        """Parse un élément de review avec les sélecteurs"""
+        """Parse avis"""
         review = {
             'company_name': company_name,
             'author': '',
@@ -173,7 +173,7 @@ class TrustpilotJSONLDScraper:
             else:
                 url = f"https://www.trustpilot.com/review/{company_name_clean}?page={page}"
             
-            self.logger.info(f"Scraping page {page}: {url}")
+            self.logger.info(f"Scraping de la page {page}: {url}")
             
             try:
                 response = self.session.get(url)

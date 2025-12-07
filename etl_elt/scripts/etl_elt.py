@@ -1,10 +1,4 @@
-"""
-Module ETL (Extract, Transform, Load)
-
-Ce fichier servira de point d'entrée pour orchestrer le pipeline ETL.
-Les fonctions d'extraction, de transformation et de chargement seront
-appelées ici lorsque le code sera prêt.
-"""
+"""Pipeline ETL"""
 
 import time
 from scrape_company_metadatas import *
@@ -24,19 +18,19 @@ def main_etl_elt():
     outputFolder = "/app/extracts/"
     scriptFolder = "/app/scripts/"
 
-    """Fonction principale du pipeline ETL."""
-    # TODO: Appelez les fonctions ici (extraction, transformation, chargement)
+    """Main ETL"""
+    # TODO
     company_list = ["www.showroomprive.com", "loaded.com", "westernunion.com", "justfly.com", "www.facebook.com"]
 
-    # collect company metadatas in a dataframe
+    # Collect
     companies_metadatas_df = create_company_data_dataframe(company_list)
 
-    # write the content of companies_df to a csv file
-    # useless step in "real world", we could directly jump to inserting data in sql
+    # CSV
+    # optionnel
     companies_metadatas_df.to_csv(outputFolder + "companies_metadatas.csv")
 
-    # create tables and views in sql
-    # will only have impact on first run
+    # SQL tables
+    # 1er run
     conn = psycopg2.connect(
                             database=POSTGRES_DB,
                             host=POSTGRES_SRV_ADDRESS,
@@ -47,15 +41,13 @@ def main_etl_elt():
     
     conn.cursor().execute(open(scriptFolder + "postgres_schema.sql", "r").read())
     
-    # read the content of csv file to a dataframe
-    # in "real world", we would have directly used previous dataframe
-    # postgres_database, postgres_host, postgres_user, postgres_password, postgres_port
+    # Insert SQL
 
     insert_company_metadatas_from_csv_in_sql(outputFolder + "companies_metadatas.csv", conn)
 
     conn.close()
 
-    # Petit délai pour éviter la fermeture immédiate du conteneur Docker
+    # Pause Docker
     #time.sleep(5)
 
 

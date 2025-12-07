@@ -23,7 +23,7 @@ dag = DAG(
     'trustpilot_daily_scraping',
     default_args=default_args,
     description='Scraping quotidien des avis Trustpilot',
-    schedule_interval='0 2 * * *',  # Tous les jours à 2h du matin
+    schedule_interval='0 2 * * *',  # 2h
     catchup=False,
     tags=['scraping', 'trustpilot', 'production']
 )
@@ -32,11 +32,11 @@ def check_prerequisites():
     from elasticsearch import Elasticsearch
     import psycopg2
     
-    print("Checking prerequisites...")
+    print("Vérification des prérequis...")
     
     es = Elasticsearch(['http://elasticsearch:9200'])
     if not es.ping():
-        raise Exception("Elasticsearch not accessible")
+        raise Exception("Elasticsearch non accessible")
     print("Elasticsearch OK")
 
     try:
@@ -49,7 +49,7 @@ def check_prerequisites():
         conn.close()
         print("PostgreSQL OK")
     except Exception as e:
-        raise Exception(f"PostgreSQL not accessible: {e}")
+        raise Exception(f"PostgreSQL non accessible: {e}")
     
     return True
 
@@ -88,20 +88,20 @@ def run_daily_scraping():
             results['companies_scraped'] += 1
             results['total_reviews'] += len(reviews)
             
-            print(f"Success {company}: {len(reviews)} new reviews")
+            print(f"Succès {company}: {len(reviews)} nouveaux avis")
             
         except Exception as e:
-            error_msg = f"Error {company}: {str(e)}"
-            print(f"Failed {error_msg}")
+            error_msg = f"Erreur {company}: {str(e)}"
+            print(f"Échec {error_msg}")
             results['errors'].append(error_msg)
     
     with open('/app/data/logs/daily_scraping_results.json', 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\nSummary:")
-    print(f"   Companies: {results['companies_scraped']}/{len(COMPANIES)}")
-    print(f"   New reviews: {results['total_reviews']}")
-    print(f"   Errors: {len(results['errors'])}")
+    print(f"\nRésumé:")
+    print(f"   Entreprises: {results['companies_scraped']}/{len(COMPANIES)}")
+    print(f"   Nouveaux avis: {results['total_reviews']}")
+    print(f"   Erreurs: {len(results['errors'])}")
     
     return results
 

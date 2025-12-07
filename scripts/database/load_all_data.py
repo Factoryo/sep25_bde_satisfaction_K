@@ -1,12 +1,10 @@
-"""
-Script principal pour charger les données Trustpilot dans PostgreSQL et Elasticsearch
-"""
+"""Chargement toutes données"""
 import sys
 import time
 import argparse
 from pathlib import Path
 
-# Ajouter le répertoire courant au path pour les imports
+# Path
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
@@ -15,20 +13,20 @@ from load_to_elasticsearch import ElasticsearchLoader
 
 
 def print_header(text):
-    """Afficher un en-tête formaté"""
+    """Affiche en-tête"""
     print("\n" + "=" * 60)
     print(f"  {text}")
     print("=" * 60 + "\n")
 
 
 def wait_for_services():
-    """Attendre que les services soient prêts"""
+    """Vérifie services"""
     import psycopg2
     from elasticsearch import Elasticsearch
     
     print_header("Vérification des services")
     
-    # Vérifier PostgreSQL
+    # PostgreSQL
     print("⏳ Attente de PostgreSQL...")
     max_retries = 30
     for i in range(max_retries):
@@ -49,12 +47,12 @@ def wait_for_services():
                 return False
             time.sleep(2)
     
-    # Vérifier Elasticsearch
+    # Elasticsearch
     print("⏳ Attente d'Elasticsearch...")
     for i in range(max_retries):
         try:
             es = Elasticsearch([{'host': 'localhost', 'port': 9200, 'scheme': 'http'}])
-            # Utiliser info() plutôt que ping()
+            # Info()
             info = es.info()
             if info:
                 print("Elasticsearch est prêt")
@@ -69,7 +67,7 @@ def wait_for_services():
 
 
 def load_postgres_data(data_dir: str, host='localhost', port=5432):
-    """Charger les données dans PostgreSQL"""
+    """Charge PostgreSQL"""
     print_header("Chargement PostgreSQL")
     
     loader = PostgresLoader(
@@ -85,7 +83,7 @@ def load_postgres_data(data_dir: str, host='localhost', port=5432):
 
 
 def load_elasticsearch_data(data_dir: str, host='localhost', port=9200):
-    """Charger les données dans Elasticsearch"""
+    """Charge Elasticsearch"""
     print_header("Chargement Elasticsearch")
     
     loader = ElasticsearchLoader(host=host, port=port)
@@ -98,13 +96,13 @@ def load_elasticsearch_data(data_dir: str, host='localhost', port=9200):
 
 
 def verify_data():
-    """Vérifier que les données sont bien chargées"""
+    """Vérifie données"""
     print_header("Vérification des données")
     
     import psycopg2
     from elasticsearch import Elasticsearch
     
-    # Vérifier PostgreSQL
+    # PostgreSQL
     try:
         conn = psycopg2.connect(
             host='localhost',
@@ -135,7 +133,7 @@ def verify_data():
     except Exception as e:
         print(f"✗ Erreur vérification PostgreSQL: {e}")
     
-    # Vérifier Elasticsearch
+    # Elasticsearch
     try:
         es = Elasticsearch(
             [{'host': 'localhost', 'port': 9200, 'scheme': 'http'}],
@@ -151,7 +149,7 @@ def verify_data():
 
 
 def show_next_steps():
-    """Afficher les prochaines étapes"""
+    """Étapes suivantes"""
     print_header("Prochaines étapes")
     
     print("✓ Données chargées avec succès!\n")
@@ -175,7 +173,7 @@ def show_next_steps():
 
 
 def main():
-    """Point d'entrée principal"""
+    """Point entrée"""
     parser = argparse.ArgumentParser(
         description='Charger les données Trustpilot dans PostgreSQL et Elasticsearch'
     )
@@ -224,7 +222,7 @@ def main():
     
     args = parser.parse_args()
     
-    # Vérifier que le répertoire de données existe
+    # Répertoire
     data_dir = Path(args.data_dir)
     if not data_dir.exists():
         print(f"✗ Le répertoire {data_dir} n'existe pas")
@@ -232,7 +230,7 @@ def main():
         print(f"  python etl_elt/scripts/test_mass_scraping.py")
         return 1
     
-    # Vérifier qu'il y a des fichiers JSON
+    # Fichiers JSON
     json_files = list(data_dir.glob("*_reviews.json")) + list(data_dir.glob("*_test.json"))
     if not json_files:
         print(f"✗ Aucun fichier *_reviews.json ou *_test.json trouvé dans {data_dir}")
@@ -242,7 +240,7 @@ def main():
     print(f"📁 Répertoire de données: {data_dir.absolute()}")
     print(f"📊 {len(json_files)} fichiers JSON trouvés")
     
-    # Attendre que les services soient prêts
+    # Services
     if not args.no_wait:
         if not wait_for_services():
             print("\nLes services ne sont pas disponibles")
@@ -252,19 +250,19 @@ def main():
     
     success = True
     
-    # Charger PostgreSQL
+    # PostgreSQL
     if not args.skip_postgres:
         if not load_postgres_data(str(data_dir), args.pg_host, args.pg_port):
             print("Échec du chargement PostgreSQL")
             success = False
     
-    # Charger Elasticsearch
+    # Elasticsearch
     if not args.skip_elasticsearch:
         if not load_elasticsearch_data(str(data_dir), args.es_host, args.es_port):
             print("Échec du chargement Elasticsearch")
             success = False
     
-    # Vérifier les données
+    # Vérif
     if success:
         verify_data()
         show_next_steps()
