@@ -84,7 +84,7 @@ def fetch_companies() -> list:
 
 # Sidebar
 with st.sidebar:
-    st.title("📊 Navigation")
+    st.title("Navigation")
     page = st.radio(
         "Select Page:",
         ["Overview", "Reviews", "Companies", "Analytics"]
@@ -98,14 +98,14 @@ with st.sidebar:
     try:
         response = requests.get(f"{API_URL}/health", timeout=2)
         if response.status_code == 200:
-            st.success("✅ API Connected")
+            st.success("API Connected")
         else:
-            st.warning("⚠️ API Issues")
+            st.warning("API Issues")
     except:
-        st.error("❌ API Offline")
+        st.error("API Offline")
 
 # Main content
-st.title("🚚 Supply Chain Satisfaction Dashboard")
+st.title("Supply Chain Satisfaction Dashboard")
 
 if page == "Overview":
     st.header("Overview")

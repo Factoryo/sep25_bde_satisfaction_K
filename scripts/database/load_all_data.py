@@ -41,11 +41,11 @@ def wait_for_services():
                 password='trustpilot_pass'
             )
             conn.close()
-            print("✓ PostgreSQL est prêt")
+            print("PostgreSQL est prêt")
             break
         except Exception as e:
             if i == max_retries - 1:
-                print(f"✗ PostgreSQL non disponible après {max_retries} tentatives")
+                print(f"PostgreSQL non disponible après {max_retries} tentatives")
                 return False
             time.sleep(2)
     
@@ -57,11 +57,11 @@ def wait_for_services():
             # Utiliser info() plutôt que ping()
             info = es.info()
             if info:
-                print("✓ Elasticsearch est prêt")
+                print("Elasticsearch est prêt")
                 break
         except Exception as e:
             if i == max_retries - 1:
-                print(f"✗ Elasticsearch non disponible après {max_retries} tentatives")
+                print(f"Elasticsearch non disponible après {max_retries} tentatives")
                 return False
             time.sleep(2)
     
@@ -245,7 +245,7 @@ def main():
     # Attendre que les services soient prêts
     if not args.no_wait:
         if not wait_for_services():
-            print("\n✗ Les services ne sont pas disponibles")
+            print("\nLes services ne sont pas disponibles")
             print("  Assurez-vous que Docker Desktop est lancé")
             print("  Et exécutez: docker-compose up -d")
             return 1
@@ -255,13 +255,13 @@ def main():
     # Charger PostgreSQL
     if not args.skip_postgres:
         if not load_postgres_data(str(data_dir), args.pg_host, args.pg_port):
-            print("✗ Échec du chargement PostgreSQL")
+            print("Échec du chargement PostgreSQL")
             success = False
     
     # Charger Elasticsearch
     if not args.skip_elasticsearch:
         if not load_elasticsearch_data(str(data_dir), args.es_host, args.es_port):
-            print("✗ Échec du chargement Elasticsearch")
+            print("Échec du chargement Elasticsearch")
             success = False
     
     # Vérifier les données

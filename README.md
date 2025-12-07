@@ -1,254 +1,69 @@
-# Supply Chain Satisfaction Client
+# Trustpilot Sentiment Analysis
 
-## 🎯 Description du Projet
+Plateforme d'analyse de satisfaction client basée sur les avis Trustpilot avec Machine Learning et orchestration automatisée.
 
-Ce projet de Data Engineering vise à analyser la satisfaction client dans le contexte de la supply chain en collectant et analysant **600,000+ reviews Trustpilot** de 60+ entreprises majeures. Il combine plusieurs technologies modernes pour collecter, traiter, analyser et visualiser des données de satisfaction client.
+## Fonctionnalités
 
-### ✨ Fonctionnalités principales
+- **Scraping automatisé** : Collecte quotidienne d'avis Trustpilot via Airflow
+- **Machine Learning** : Analyse de sentiment (F1-Score: 0.77, Logistic Regression)
+- **APIs REST** : Accès aux données et prédictions ML
+- **Dashboard Streamlit** : Visualisation interactive
+- **Monitoring** : Data drift detection et métriques Prometheus/Grafana
+- **Orchestration** : Airflow DAGs pour automatisation complète
 
-- **Web Scraping Massif** : Collecte automatisée de 10,000+ reviews par entreprise avec stratégie multi-filtres
-- **Machine Learning** : Analyse de sentiment avec 3 modèles (Logistic Regression, Naive Bayes, Random Forest)
-- **API REST** : Interface pour accéder aux données et aux prédictions de sentiment en temps réel
-- **ML API** : Service dédié pour les prédictions ML (port 8001)
-- **Data Drift Monitoring** : Détection automatique des dérives dans les données
-- **Dashboard** : Visualisation interactive des métriques de satisfaction
-- **Orchestration** : Automatisation des workflows de données avec Airflow
+## Quick Start
 
-## 🚀 Quick Start - Mass Scraping
-
-### Option 1: Script PowerShell (Recommandé)
-```powershell
-cd etl_elt
-
-# Test sur 3 entreprises (~30 min)
-.\scraping.ps1 test
-
-# Vérifier les résultats
-.\scraping.ps1 check
-
-# Lancer le scraping complet (~30-40h)
-.\scraping.ps1 run
-```
-
-### Option 2: Python Direct
-```powershell
-cd etl_elt
-
-# Test
-python scripts/test_mass_scraping.py
-
-# Production
-python scripts/mass_scraping.py
-
-# Vérifier la progression
-python scripts/check_progress.py
-```
-
-📚 **Documentation détaillée** : 
-- Scraping: `etl_elt/scripts/SETUP_COMPLETE.md`
-- Organisation des données: `docs/DATABASE_ORGANIZATION.md`
-
----
-
-## 💾 Organisation des Données
-
-### Architecture en 2 bases
-
-1. **PostgreSQL** (Données relationnelles)
-   - Informations d'entreprises (nom, catégorie, contacts)
-   - TrustScores et distribution des étoiles
-   - Adresses et métadonnées
-   
-2. **Elasticsearch** (Données orientées documents)
-   - Avis clients complets (600,000+ reviews)
-   - Recherche full-text en français
-   - Agrégations et analytics temps réel
-
-### Chargement des données
-
-```powershell
-# 1. Démarrer les services Docker
+```bash
+# Démarrer les services
 docker-compose up -d
 
-# 2. Charger toutes les données (PostgreSQL + Elasticsearch)
+# Initialiser Airflow (première fois uniquement)
+docker exec -it airflow-webserver airflow db init
+docker exec -it airflow-webserver airflow users create \
+  --username admin --password admin --firstname Admin --lastname User \
+  --role Admin --email admin@example.com
+
+# Charger des données initiales
 python scripts/database/load_all_data.py --data-dir data/raw
-
-# 3. Accéder aux services
-# PostgreSQL: localhost:5432 (trustpilot_db/trustpilot_user/trustpilot_pass)
-# Elasticsearch: http://localhost:9200
-# Kibana: http://localhost:5601
 ```
 
-### Analyse SQL et visualisation
+## Services
 
-```sql
--- Top 10 entreprises par TrustScore
-SELECT e.entreprise_name, r.trustscore
-FROM Entreprise e
-JOIN Rating r ON e.entreprise_id = r.entreprise_id
-ORDER BY r.trustscore DESC LIMIT 10;
-```
+| Service | URL | Description |
+|---------|-----|-------------|
+| API principale | http://localhost:8000 | Données et statistiques |
+| ML API | http://localhost:8001 | Prédictions de sentiment |
+| Dashboard | http://localhost:8502 | Interface Streamlit |
+| Airflow | http://localhost:8080 | Orchestration (admin/admin) |
+| Elasticsearch | http://localhost:9200 | Recherche full-text |
+| PostgreSQL | localhost:5432 | Base de données |
+| Grafana | http://localhost:3000 | Monitoring (admin/admin) |
 
-📊 **Kibana Dashboard**: `docs/KIBANA_SETUP.md`  
-📈 **Requêtes SQL**: `scripts/database/sql_queries.sql`
+## Architecture
 
----
+### Stack Technique
+- **Backend**: Python 3.11, FastAPI
+- **ML**: Scikit-learn, TF-IDF vectorization
+- **Bases de données**: PostgreSQL 15, Elasticsearch 8.11
+- **Orchestration**: Apache Airflow 2.8
+- **Monitoring**: Prometheus, Grafana
+- **Frontend**: Streamlit
+- **Infrastructure**: Docker Compose (12 services)
 
-## 📊 Données Collectées
-
-### 60+ Entreprises Scrapées
-- **E-commerce**: Amazon, eBay, AliExpress, Walmart, Target, Etsy, Wish
-- **Tech**: Apple, Microsoft, Google, Samsung, Dell, HP
-- **Services**: Facebook, Netflix, Spotify, PayPal, Zoom
-- **Travel**: Booking.com, Airbnb, Uber, Expedia, Ryanair
-- **Fashion**: ASOS, Nike, Adidas, Zara, H&M
-- **Finance**: Revolut, N26, Coinbase
-- **France**: Vinted, SNCF, Orange, Fnac, Cdiscount
-
-### 30+ Champs par Review
-- Identifiants, scores, dates (absolues/relatives)
-- Contenu (titre, texte), réponses entreprise
-- Métadonnées reviewer (nom, nombre d'avis)
-
-**Target**: ~600,000 reviews totales (10,000 × 60 entreprises)
-
-## Technologies Utilisées
-
-| Technologie | Utilisation |
-|-------------|-------------|
-| **Python** | Langage principal pour le développement |
-| **FastAPI** | Framework pour l'API REST haute performance |
-| **Docker** | Conteneurisation et déploiement |
-| **PostgreSQL** | Base de données relationnelle (entreprises) |
-| **Elasticsearch** | Stockage et recherche de données (reviews) |
-| **Kibana** | Visualisation et dashboard analytics |
-| **Streamlit** | Dashboard interactif |
-| **Apache Airflow** | Orchestration des workflows |
-| **Scikit-learn** | Modèles de machine learning |
-| **BeautifulSoup** | Web scraping Trustpilot |
-
-## Structure du Projet
+### Pipeline de Données
 
 ```
-supply-chain-satisfaction-client/
-├── data/
-│   ├── raw/                 # Données JSON scrapées (~600,000 reviews)
-│   └── processed/           # Données traitées et nettoyées
-├── scripts/
-│   ├── scraping/            # Scripts de web scraping
-│   ├── database/            # Scripts de chargement PostgreSQL/Elasticsearch
-│   └── ml/                  # Scripts ML et monitoring
-│       ├── models/          # Modèles sauvegardés (.pkl)
-│       └── data_drift_monitor.py  # Détection de data drift
-├── notebooks/               # Jupyter notebooks pour analyses
-│   └── sentiment_analysis.ipynb   # Workflow ML complet
-├── api/                     # Applications FastAPI
-│   ├── main.py             # API principale (données, stats)
-│   ├── ml_api.py           # API ML (prédictions de sentiment)
-│   └── requirements_ml.txt # Dépendances ML spécifiques
-├── dashboard/               # Application Streamlit
-├── docker/                  # Fichiers Docker
-│   ├── Dockerfile.api      # API principale
-│   ├── Dockerfile.ml-api   # ML API
-│   └── Dockerfile.dashboard
-├── airflow/                 # DAGs et configuration Airflow
-├── docs/                    # Documentation complète
-│   ├── DATABASE_ORGANIZATION.md  # Guide base de données
-│   ├── KIBANA_SETUP.md          # Configuration Kibana
-│   └── data_drift_reports/      # Rapports de monitoring
-├── etl_elt/                 # Système de scraping Trustpilot
-│   ├── scrapers/            # Scripts de scraping
-│   ├── scripts/             # Mass scraping et utilitaires
-│   └── QUICKSTART.md        # Guide rapide scraping
-├── tests/                   # Tests unitaires et d'intégration
-├── .gitignore               # Fichiers ignorés par Git
-├── requirements.txt         # Dépendances Python
-├── docker-compose.yml       # 6 services (API, Dashboard, PostgreSQL, Elasticsearch, Kibana, Airflow)
-├── README.md                # Documentation principale
-└── LICENSE                  # Licence du projet
+Trustpilot → Airflow DAG (daily @ 2AM) → PostgreSQL + Elasticsearch
+                    ↓
+              ML Training → Drift Detection (daily @ 3AM)
+                    ↓
+              ML API (predictions) → Dashboard Streamlit
 ```
 
-## Instructions d'Installation
-
-### Prérequis
-
-- Python 3.9 ou supérieur
-- Docker et Docker Compose
-- Git
-
-### Installation locale
-
-1. **Cloner le repository**
-   ```bash
-   git clone https://github.com/Factoryo/sep25_bde_satisfaction_K.git
-   cd sep25_bde_satisfaction_K
-   ```
-
-2. **Créer un environnement virtuel**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # ou
-   .\venv\Scripts\activate   # Windows
-   ```
-
-3. **Installer les dépendances**
-2. **Accéder aux services**
-   - API FastAPI (données) : http://localhost:8000
-   - API FastAPI (ML/prédictions) : http://localhost:8001
-   - Documentation API principale : http://localhost:8000/docs
-   - Documentation ML API : http://localhost:8001/docs
-   - Dashboard Streamlit : http://localhost:8502
-   - PostgreSQL : localhost:5432 (trustpilot_db)
-   - Elasticsearch : http://localhost:9200
-   - Kibana : http://localhost:5601
-   ```bash
-   docker-compose up -d
-   ```
-
-2. **Accéder aux services**
-   - API FastAPI : http://localhost:8000
-   - Documentation API : http://localhost:8000/docs
-   - Dashboard Streamlit : http://localhost:8502
-   - PostgreSQL : localhost:5432 (trustpilot_db)
-   - Elasticsearch : http://localhost:9200
-   - Kibana : http://localhost:5601
-
-3. **Charger les données scrapées**
-   ```bash
-   # Attendre 30 secondes que les services soient prêts
-   python scripts/database/load_all_data.py --data-dir data/raw
-   ```
-
-### Arrêter les services
-
-```bash
-docker-compose down
 ## Utilisation
 
-### API Principale (Port 8000)
+### Prédiction de Sentiment
 
-L'API FastAPI principale expose des endpoints pour :
-- Récupérer les statistiques de satisfaction (`/api/stats`)
-- Lister et filtrer les avis (`/api/reviews`)
-- Obtenir les informations d'entreprises (`/api/companies`)
-- Health check du système (`/health`)
-
-**Exemple:**
-```bash
-curl http://localhost:8000/api/stats
-```
-
-### ML API (Port 8001)
-
-L'API ML expose des endpoints pour les prédictions de sentiment :
-- **POST** `/api/ml/predict` - Prédiction sur un seul avis
-- **POST** `/api/ml/predict-batch` - Prédictions en batch
-- **GET** `/api/ml/model-info` - Informations sur le modèle en production
-- **GET** `/api/ml/model-performance` - Comparaison des performances des modèles
-- **GET** `/health` - Vérifier l'état du chargement des modèles
-
-**Exemple de prédiction:**
 ```bash
 curl -X POST http://localhost:8001/api/ml/predict \
   -H "Content-Type: application/json" \
@@ -267,46 +82,90 @@ curl -X POST http://localhost:8001/api/ml/predict \
     "positif": 0.92,
     "negatif": 0.05,
     "neutre": 0.03
-  },
-  "cleaned_text": "service excellent livraison rapide"
+  }
 }
 ```
 
-### Data Drift Monitoring
-
-Détecter les dérives dans les données pour maintenir la qualité des modèles :
+### Monitoring Data Drift
 
 ```bash
 python scripts/ml/data_drift_monitor.py
 ```
 
-Le script génère :
-- Rapport JSON détaillé avec statistiques
-- Visualisations (distributions, évolutions temporelles)
-- Alertes si dérive significative détectée
+Génère des rapports JSON et visualisations dans `docs/data_drift_reports/`
 
-Rapports sauvegardés dans `docs/data_drift_reports/`
+### Automatisation PowerShell
 
-### Dashboard prédictions du modèle ML
-
-### Dashboard
-
-Le dashboard Streamlit permet de :
-- Visualiser les métriques de satisfaction en temps réel
-- Explorer les tendances historiques
-- Analyser les résultats des prédictions
-
-## Tests
-
-Exécuter les tests :
-```bash
-pytest tests/ -v
+```powershell
+# Menu interactif de gestion
+.\scripts\automation.ps1
 ```
 
-## Contribution
+Options: Start/Stop services, trigger scraping, check status
 
-Les contributions sont les bienvenues ! Veuillez consulter les guidelines de contribution dans le dossier `docs/`.
+## Structure du Projet
+
+```
+sep25_bde_satisfaction_K/
+├── airflow/              # DAGs Airflow (scraping, monitoring)
+├── api/                  # FastAPI applications
+│   ├── main.py          # API données
+│   └── ml_api.py        # API ML prédictions
+├── dashboard/            # Streamlit dashboard
+├── data/                 # Données scrapées (raw/processed)
+├── scripts/
+│   ├── database/        # Load PostgreSQL/Elasticsearch
+│   ├── ml/              # Training, drift detection
+│   └── automation.ps1   # Menu gestion services
+├── notebooks/            # Jupyter analysis
+├── monitoring/           # Prometheus + Grafana config
+├── docker/               # Dockerfiles
+├── docker-compose.yml    # 12 services orchestrés
+└── requirements.txt
+```
+
+## Installation
+
+### Prérequis
+- Python 3.11+
+- Docker Desktop
+- Git
+
+### Setup
+
+```bash
+# Clone
+git clone https://github.com/Factoryo/sep25_bde_satisfaction_K.git
+cd sep25_bde_satisfaction_K
+
+# Environnement Python
+python -m venv venv
+.\venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+
+# Démarrer Docker
+docker-compose up -d
+
+# Initialiser Airflow
+docker exec -it airflow-webserver airflow db init
+```
+
+## CI/CD
+
+Pipeline GitLab CI avec 4 stages:
+1. **Test**: Linting, tests unitaires
+2. **Build**: Docker images
+3. **Deploy**: Push images, deploy services
+4. **Monitor**: Health checks, alertes
+
+## Modèle ML
+
+- **Algorithme**: Logistic Regression (meilleur F1-Score)
+- **Features**: TF-IDF (5000 features, 1-2 grams)
+- **Performance**: F1=0.7696, Précision=0.77, Rappel=0.77
+- **Dataset**: 21,795 reviews entraînement
+- **Classes**: Positif, Négatif, Neutre
 
 ## Licence
 
-Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+MIT License - Voir [LICENSE](LICENSE)

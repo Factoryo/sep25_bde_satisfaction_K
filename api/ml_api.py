@@ -89,7 +89,7 @@ async def load_models():
             with open(metadata_path, 'r', encoding='utf-8') as f:
                 METADATA = json.load(f)
         
-        logger.info("✓ Modèles chargés avec succès!")
+        logger.info("Modèles chargés avec succès!")
         if METADATA:
             logger.info(f"  Meilleur modèle: {METADATA.get('best_model')}")
             logger.info(f"  F1-Score: {METADATA.get('best_f1_score', 0):.4f}")

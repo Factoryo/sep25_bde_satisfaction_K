@@ -1,7 +1,3 @@
-"""
-DAG Airflow - Scraping Quotidien Trustpilot
-Collecte automatique des nouveaux avis chaque jour à 2h du matin
-"""
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.bash import BashOperator
@@ -9,7 +5,7 @@ from datetime import datetime, timedelta
 import sys
 import os
 
-# Ajouter le chemin du projet
+
 sys.path.insert(0, '/app')
 
 default_args = {
@@ -33,19 +29,16 @@ dag = DAG(
 )
 
 def check_prerequisites():
-    """Vérifier que Elasticsearch et PostgreSQL sont accessibles"""
     from elasticsearch import Elasticsearch
     import psycopg2
     
-    print("Vérification des prérequis...")
+    print("Checking prerequisites...")
     
-    # Test Elasticsearch
     es = Elasticsearch(['http://elasticsearch:9200'])
     if not es.ping():
-        raise Exception("Elasticsearch non accessible")
-    print("✓ Elasticsearch OK")
-    
-    # Test PostgreSQL
+        raise Exception("Elasticsearch not accessible")
+    print("Elasticsearch OK")
+
     try:
         conn = psycopg2.connect(
             host='postgres',
@@ -54,21 +47,19 @@ def check_prerequisites():
             password='trustpilot_pass'
         )
         conn.close()
-        print("✓ PostgreSQL OK")
+        print("PostgreSQL OK")
     except Exception as e:
-        raise Exception(f"PostgreSQL non accessible: {e}")
+        raise Exception(f"PostgreSQL not accessible: {e}")
     
     return True
 
 def run_daily_scraping():
-    """Exécuter le scraping quotidien pour toutes les entreprises"""
     import sys
     sys.path.insert(0, '/app/etl_elt')
     
     from scrapers.trustpilot_reviews_scraper import TrustpilotReviewsScraper
     import json
-    
-    # Liste des entreprises à scraper (top priorités)
+
     COMPANIES = [
         "amazon.com", "amazon.co.uk", "ebay.com", "aliexpress.com",
         "apple.com", "microsoft.com", "google.com", "samsung.com",
@@ -83,59 +74,54 @@ def run_daily_scraping():
         'errors': []
     }
     
-    scraper = TrustpilotReviewsScraper()
+    scraper = TrustpilotReviewsScraper(delay=2.0)
     
     for company in COMPANIES:
         try:
             print(f"Scraping {company}...")
-            # Scraper uniquement les nouveaux avis (last 7 days)
-            reviews = scraper.scrape_reviews(
-                company_name=company,
-                max_pages=10,  # Limiter à 200 reviews par jour
-                filters={'date_range': 'last_7_days'}
+            company_url = f"https://www.trustpilot.com/review/{company}"
+            reviews = scraper.scrape_all_reviews(
+                company_url=company_url,
+                max_pages=10
             )
             
             results['companies_scraped'] += 1
             results['total_reviews'] += len(reviews)
             
-            print(f"✓ {company}: {len(reviews)} nouveaux avis")
+            print(f"Success {company}: {len(reviews)} new reviews")
             
         except Exception as e:
-            error_msg = f"Erreur {company}: {str(e)}"
-            print(f"✗ {error_msg}")
+            error_msg = f"Error {company}: {str(e)}"
+            print(f"Failed {error_msg}")
             results['errors'].append(error_msg)
     
-    # Sauvegarder les résultats
     with open('/app/data/logs/daily_scraping_results.json', 'w') as f:
         json.dump(results, f, indent=2)
     
-    print(f"\n📊 Résumé:")
-    print(f"   Entreprises: {results['companies_scraped']}/{len(COMPANIES)}")
-    print(f"   Nouveaux avis: {results['total_reviews']}")
-    print(f"   Erreurs: {len(results['errors'])}")
+    print(f"\nSummary:")
+    print(f"   Companies: {results['companies_scraped']}/{len(COMPANIES)}")
+    print(f"   New reviews: {results['total_reviews']}")
+    print(f"   Errors: {len(results['errors'])}")
     
     return results
 
 def load_to_databases():
-    """Charger les données scrapées dans Elasticsearch et PostgreSQL"""
     print("Chargement des données dans les bases...")
     
-    # Cette fonction appelle les scripts de chargement existants
     import subprocess
     
     result = subprocess.run([
         'python', '/app/scripts/database/load_all_data.py',
         '--data-dir', '/app/data/raw',
-        '--incremental'  # Mode incrémental pour ne charger que les nouveaux
+        '--incremental' 
     ], capture_output=True, text=True)
     
     if result.returncode != 0:
         raise Exception(f"Erreur lors du chargement: {result.stderr}")
     
-    print("✓ Données chargées avec succès")
+    print("Données chargées avec succès")
     return True
 
-# Définir les tâches
 task_check = PythonOperator(
     task_id='check_prerequisites',
     python_callable=check_prerequisites,
@@ -160,5 +146,4 @@ task_cleanup = BashOperator(
     dag=dag
 )
 
-# Définir le flux
 task_check >> task_scraping >> task_load >> task_cleanup

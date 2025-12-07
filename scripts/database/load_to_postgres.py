@@ -48,7 +48,7 @@ class PostgresLoader:
             self.cursor.close()
         if self.conn:
             self.conn.close()
-            logger.info("✓ Connexion PostgreSQL fermée")
+            logger.info("Connexion PostgreSQL fermée")
     
     def load_json_files(self, data_dir: str) -> List[Dict]:
         """Charger tous les fichiers JSON du répertoire"""

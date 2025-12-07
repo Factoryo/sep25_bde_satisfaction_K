@@ -1,7 +1,3 @@
-"""
-DAG Airflow - Monitoring ML et Data Drift
-Surveillance quotidienne de la qualité des modèles et détection des dérives
-"""
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from airflow.operators.email import EmailOperator
@@ -25,7 +21,7 @@ dag = DAG(
     'ml_monitoring_and_drift_detection',
     default_args=default_args,
     description='Monitoring quotidien des modèles ML et détection de data drift',
-    schedule_interval='0 3 * * *',  # Tous les jours à 3h du matin (après le scraping)
+    schedule_interval='0 3 * * *',  
     catchup=False,
     tags=['ml', 'monitoring', 'data-drift']
 )
@@ -35,7 +31,7 @@ def run_data_drift_detection():
     sys.path.insert(0, '/app/scripts/ml')
     from data_drift_monitor import DataDriftMonitor
     
-    print("🔍 Lancement de la détection de data drift...")
+    print("Lancement de la détection de data drift...")
     
     monitor = DataDriftMonitor(
         es_host='elasticsearch',
@@ -47,30 +43,26 @@ def run_data_drift_detection():
     if not report:
         raise Exception("Échec de la génération du rapport de drift")
     
-    # Vérifier si une dérive a été détectée
     drift_detected = report.get('overall_drift_detected', False)
     
     if drift_detected:
-        print("⚠️  ALERTE: Data drift détecté!")
-        print("   → Réentraînement du modèle recommandé")
+        print("ALERTE: Data drift détecté!")
+        print("   Réentraînement du modèle recommandé")
         
-        # Enregistrer l'alerte
         with open('/app/data/logs/drift_alerts.log', 'a') as f:
             f.write(f"{datetime.now()}: Data drift détecté\n")
     else:
-        print("✓ Aucune dérive significative détectée")
+        print("Aucune dérive significative détectée")
     
     return report
 
 def check_model_performance():
-    """Vérifier les performances du modèle en production"""
     import requests
     import json
     
-    print("📊 Vérification des performances du modèle...")
+    print("Vérification des performances du modèle...")
     
     try:
-        # Appeler l'API ML pour obtenir les infos du modèle
         response = requests.get('http://ml-api:8001/api/ml/model-info', timeout=10)
         
         if response.status_code == 200:
@@ -79,25 +71,21 @@ def check_model_performance():
             
             print(f"   F1-Score actuel: {f1_score:.4f}")
             
-            # Alerte si F1 < 0.70
             if f1_score < 0.70:
-                print("⚠️  ALERTE: Performance dégradée (F1 < 0.70)")
+                print("Performance dégradée (F1 < 0.70)")
                 return {'status': 'warning', 'f1_score': f1_score}
             
-            print("✓ Performances OK")
+            print("Performances OK")
             return {'status': 'ok', 'f1_score': f1_score}
         else:
             raise Exception(f"API erreur: {response.status_code}")
             
     except Exception as e:
-        print(f"✗ Erreur lors de la vérification: {e}")
+        print(f"Erreur lors de la vérification: {e}")
         raise
 
 def test_api_health():
-    """Tester la santé de l'API ML"""
     import requests
-    
-    print("🏥 Test de santé de l'API ML...")
     
     try:
         response = requests.get('http://ml-api:8001/health', timeout=5)
@@ -106,7 +94,7 @@ def test_api_health():
             health = response.json()
             
             if health.get('model_loaded'):
-                print("✓ API ML opérationnelle, modèle chargé")
+                print("API ML opérationnelle, modèle chargé")
                 return True
             else:
                 raise Exception("Modèle non chargé")
@@ -114,17 +102,12 @@ def test_api_health():
             raise Exception(f"Status: {response.status_code}")
             
     except Exception as e:
-        print(f"✗ API ML inaccessible: {e}")
+        print(f"API ML inaccessible: {e}")
         raise
 
 def analyze_api_logs():
-    """Analyser les logs de l'API pour détecter des anomalies"""
     import re
     from collections import Counter
-    
-    print("📝 Analyse des logs API...")
-    
-    # Simuler l'analyse de logs (à adapter selon votre système de logs)
     log_stats = {
         'total_requests': 0,
         'errors_5xx': 0,
@@ -132,9 +115,6 @@ def analyze_api_logs():
         'avg_response_time': 0,
         'predictions_made': 0
     }
-    
-    # Dans un vrai scénario, vous liriez les logs
-    # Ici, on simule avec des métriques de base
     
     print(f"   Total requêtes: {log_stats['total_requests']}")
     print(f"   Erreurs 5xx: {log_stats['errors_5xx']}")
@@ -144,33 +124,32 @@ def analyze_api_logs():
     return log_stats
 
 def send_daily_report(**context):
-    """Préparer le rapport quotidien"""
     task_instance = context['task_instance']
     
     drift_report = task_instance.xcom_pull(task_ids='detect_data_drift')
     model_perf = task_instance.xcom_pull(task_ids='check_model_performance')
     
     report_lines = [
-        "📊 RAPPORT QUOTIDIEN - ML MONITORING",
+        "RAPPORT QUOTIDIEN - ML MONITORING",
         "=" * 60,
         "",
         f"Date: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
         "",
-        "🔍 Data Drift:",
+        "Data Drift:",
     ]
     
     if drift_report and drift_report.get('overall_drift_detected'):
-        report_lines.append("   ⚠️  DÉRIVE DÉTECTÉE - Action requise")
+        report_lines.append("   DÉRIVE DÉTECTÉE - Action requise")
     else:
-        report_lines.append("   ✓  Aucune dérive")
+        report_lines.append("   Aucune dérive")
     
     report_lines.extend([
         "",
-        "📈 Performance Modèle:",
+        "Performance Modèle:",
         f"   F1-Score: {model_perf.get('f1_score', 0):.4f}",
         f"   Status: {model_perf.get('status', 'unknown')}",
         "",
-        "✅ Tous les checks terminés avec succès"
+        "Tous les checks terminés avec succès"
     ])
     
     report = "\n".join(report_lines)

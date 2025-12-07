@@ -60,7 +60,7 @@ class DataDriftMonitor:
                 # Si pas de date, utiliser la date actuelle
                 df['date'] = datetime.now()
             
-            print(f"✓ {len(df)} avis chargés")
+            print(f"{len(df)} avis chargés")
             return df
             
         except Exception as e:
@@ -108,23 +108,23 @@ class DataDriftMonitor:
         # Test de Kolmogorov-Smirnov pour détecter les différences
         ks_statistic, ks_pvalue = stats.ks_2samp(df_ref['rating'], df_curr['rating'])
         
-        print(f"\n📊 Test de Kolmogorov-Smirnov:")
+        print(f"\nTest de Kolmogorov-Smirnov:")
         print(f"   Statistique: {ks_statistic:.4f}")
         print(f"   P-value: {ks_pvalue:.4f}")
         
         drift_detected = ks_pvalue < 0.05
         
         if drift_detected:
-            print(f"   ⚠️  DÉRIVE DÉTECTÉE (p < 0.05)")
+            print(f"   DÉRIVE DÉTECTÉE (p < 0.05)")
         else:
-            print(f"   ✓  Pas de dérive significative (p >= 0.05)")
+            print(f"   Pas de dérive significative (p >= 0.05)")
         
         # Calculer les changements moyens
         mean_ref = df_ref['rating'].mean()
         mean_curr = df_curr['rating'].mean()
         mean_change = mean_curr - mean_ref
         
-        print(f"\n📈 Moyennes:")
+        print(f"\nMoyennes:")
         print(f"   Référence: {mean_ref:.2f}★")
         print(f"   Courant: {mean_curr:.2f}★")
         print(f"   Changement: {mean_change:+.2f}★ ({(mean_change/mean_ref)*100:+.1f}%)")
@@ -171,9 +171,9 @@ class DataDriftMonitor:
         drift_detected = ks_pvalue < 0.05
         
         if drift_detected:
-            print(f"   ⚠️  DÉRIVE DÉTECTÉE dans la longueur des textes")
+            print(f"   DÉRIVE DÉTECTÉE dans la longueur des textes")
         else:
-            print(f"   ✓  Pas de dérive significative")
+            print(f"   Pas de dérive significative")
         
         return {
             'ks_statistic': float(ks_statistic),
@@ -212,10 +212,10 @@ class DataDriftMonitor:
         missing_companies = ref_set - curr_set
         
         if new_companies:
-            print(f"\n📈 Nouvelles entreprises ({len(new_companies)}): {', '.join(list(new_companies)[:5])}")
+            print(f"\nNouvelles entreprises ({len(new_companies)}): {', '.join(list(new_companies)[:5])}")
         
         if missing_companies:
-            print(f"\n📉 Entreprises disparues ({len(missing_companies)}): {', '.join(list(missing_companies)[:5])}")
+            print(f"\nEntreprises disparues ({len(missing_companies)}): {', '.join(list(missing_companies)[:5])}")
         
         return {
             'new_companies': list(new_companies),
@@ -284,24 +284,24 @@ class DataDriftMonitor:
         ax4.axis('off')
         
         drift_summary = []
-        drift_summary.append("🔍 RÉSUMÉ DES DÉRIVES DÉTECTÉES\n")
+        drift_summary.append("RÉSUMÉ DES DÉRIVES DÉTECTÉES\n")
         drift_summary.append("="*40 + "\n\n")
         
         if report_data['rating_drift']['drift_detected']:
-            drift_summary.append("⚠️  Dérive RATINGS détectée\n")
+            drift_summary.append("Dérive RATINGS détectée\n")
             drift_summary.append(f"   p-value: {report_data['rating_drift']['ks_pvalue']:.4f}\n")
             drift_summary.append(f"   Δ moyenne: {report_data['rating_drift']['mean_change']:+.2f}★\n\n")
         else:
-            drift_summary.append("✓  Pas de dérive RATINGS\n\n")
+            drift_summary.append("Pas de dérive RATINGS\n\n")
         
         if report_data['text_length_drift']['drift_detected']:
-            drift_summary.append("⚠️  Dérive LONGUEUR TEXTE détectée\n")
+            drift_summary.append("Dérive LONGUEUR TEXTE détectée\n")
             drift_summary.append(f"   Δ moyenne: {report_data['text_length_drift']['mean_change']:+.0f} chars\n\n")
         else:
-            drift_summary.append("✓  Pas de dérive LONGUEUR TEXTE\n\n")
+            drift_summary.append("Pas de dérive LONGUEUR TEXTE\n\n")
         
         if report_data['company_drift']['n_new'] > 0 or report_data['company_drift']['n_missing'] > 0:
-            drift_summary.append(f"📊 Changements ENTREPRISES:\n")
+            drift_summary.append(f"Changements ENTREPRISES:\n")
             drift_summary.append(f"   Nouvelles: {report_data['company_drift']['n_new']}\n")
             drift_summary.append(f"   Disparues: {report_data['company_drift']['n_missing']}\n")
         
@@ -312,7 +312,7 @@ class DataDriftMonitor:
         plt.savefig(viz_path, dpi=150, bbox_inches='tight')
         plt.close()
         
-        print(f"\n✓ Visualisation sauvegardée: {viz_path}")
+        print(f"\nVisualisation sauvégardée: {viz_path}")
         return str(viz_path)
     
     def generate_report(self):
@@ -378,8 +378,8 @@ class DataDriftMonitor:
         print("\n" + "="*80)
         print("RAPPORT GÉNÉRÉ")
         print("="*80)
-        print(f"📄 Rapport JSON: {report_path}")
-        print(f"📊 Visualisation: {viz_path}")
+        print(f"Rapport JSON: {report_path}")
+        print(f"Visualisation: {viz_path}")
         
         # Afficher le résumé final
         print("\n" + "="*80)
@@ -387,13 +387,13 @@ class DataDriftMonitor:
         print("="*80)
         
         if report['overall_drift_detected']:
-            print("\n⚠️  ALERTE: DÉRIVE DES DONNÉES DÉTECTÉE")
+            print("\nALERTE: DÉRIVE DES DONNÉES DÉTECTÉE")
             print("\nActions recommandées:")
             print("   1. Réentraîner les modèles avec les nouvelles données")
             print("   2. Ajuster les hyperparamètres si nécessaire")
             print("   3. Vérifier la qualité des prédictions en production")
         else:
-            print("\n✓  AUCUNE DÉRIVE SIGNIFICATIVE DÉTECTÉE")
+            print("\nAUCUNE DÉRIVE SIGNIFICATIVE DÉTECTÉE")
             print("\nLes modèles en production restent valides.")
         
         return report
@@ -410,6 +410,6 @@ if __name__ == "__main__":
     report = monitor.generate_report()
     
     if report:
-        print("\n✅ Rapport de data drift généré avec succès!")
+        print("\nRapport de data drift généré avec succès!")
     else:
-        print("\n❌ Échec de la génération du rapport")
+        print("\nÉchec de la génération du rapport")

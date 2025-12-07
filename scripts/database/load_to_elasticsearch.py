@@ -43,14 +43,14 @@ class ElasticsearchLoader:
             # Utiliser info() plutôt que ping() car ping() peut retourner 400
             info = self.es.info()
             if info:
-                logger.info("✓ Connexion à Elasticsearch établie")
+                logger.info("Connexion à Elasticsearch établie")
                 logger.info(f"  Version: {info['version']['number']}")
                 return True
             else:
-                logger.error("✗ Impossible de se connecter à Elasticsearch")
+                logger.error("Impossible de se connecter à Elasticsearch")
                 return False
         except Exception as e:
-            logger.error(f"✗ Erreur de connexion Elasticsearch: {e}")
+            logger.error(f"Erreur de connexion Elasticsearch: {e}")
             return False
     
     def create_index(self):
@@ -133,10 +133,10 @@ class ElasticsearchLoader:
                 return True
             
             self.es.indices.create(index=self.index_name, body=mapping)
-            logger.info(f"✓ Index '{self.index_name}' créé avec succès")
+            logger.info(f"Index '{self.index_name}' créé avec succès")
             return True
         except Exception as e:
-            logger.error(f"✗ Erreur création index: {e}")
+            logger.error(f"Erreur création index: {e}")
             return False
     
     def load_json_files(self, data_dir: str) -> List[Dict]:
@@ -162,10 +162,10 @@ class ElasticsearchLoader:
                         review['scraped_at'] = datetime.now().isoformat()
                     
                     all_reviews.extend(reviews)
-                    logger.info(f"✓ Chargé: {json_file.name} ({len(reviews)} avis)")
+                    logger.info(f"Chargé: {json_file.name} ({len(reviews)} avis)")
                     
             except Exception as e:
-                logger.error(f"✗ Erreur lecture {json_file}: {e}")
+                logger.error(f"Erreur lecture {json_file}: {e}")
         
         return all_reviews
     
@@ -194,10 +194,10 @@ class ElasticsearchLoader:
         
         try:
             reviews = self.load_json_files(data_dir)
-            logger.info(f"📊 {len(reviews)} avis à charger")
+            logger.info(f"{len(reviews)} avis à charger")
             
             if not reviews:
-                logger.warning("⚠ Aucun avis trouvé")
+                logger.warning("Aucun avis trouvé")
                 return False
             
             # Bulk insert
@@ -208,9 +208,9 @@ class ElasticsearchLoader:
                 raise_on_error=False
             )
             
-            logger.info(f"✓ {success} avis chargés avec succès")
+            logger.info(f"{success} avis chargés avec succès")
             if failed:
-                logger.warning(f"⚠ {len(failed)} avis ont échoué")
+                logger.warning(f"{len(failed)} avis ont échoué")
                 # Afficher quelques exemples d'erreurs
                 for i, error in enumerate(failed[:3]):
                     logger.error(f"  Exemple d'erreur {i+1}: {error}")
@@ -220,12 +220,12 @@ class ElasticsearchLoader:
             
             # Afficher les statistiques
             count = self.es.count(index=self.index_name)
-            logger.info(f"📊 Total avis dans l'index: {count['count']}")
+            logger.info(f"Total avis dans l'index: {count['count']}")
             
             return True
             
         except Exception as e:
-            logger.error(f"✗ Erreur lors du chargement: {e}")
+            logger.error(f"Erreur lors du chargement: {e}")
             return False
     
     def get_index_stats(self):
