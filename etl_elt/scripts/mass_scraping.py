@@ -117,6 +117,12 @@ def main():
         print(f"🏢 Entreprise {i}/{len(COMPANIES)}: {company_domain}")
         print(f"{'='*60}")
         
+        # Vérifie si déjà scrapé
+        output_file = f"data/raw/{company_domain.replace('.', '_')}_reviews.json"
+        if os.path.exists(output_file):
+            print(f"⏭️  Déjà scrapé, fichier existant: {output_file}")
+            continue
+        
         try:
             # URL
             company_url = f"https://fr.trustpilot.com/review/{company_domain}"
