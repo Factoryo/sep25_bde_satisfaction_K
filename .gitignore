@@ -48,6 +48,9 @@ env/
 data/raw/*.csv
 data/raw/*.json
 data/processed/*.csv
+etl_elt/data/
+etl_elt/data/raw/*.json
+etl_elt/data/processed/*.json
 data/processed/*.json
 data/processed/*.pkl
 
