@@ -44,7 +44,7 @@ def fetch_stats() -> Dict[str, Any]:
         "neutral_reviews": 100
     }
 
-def fetch_reviews(limit: int = 10, company: str = None) -> list:
+def fetch_reviews(limit: int = 10, company: str | None = None) -> list:
     try:
         url = f"{API_URL}/api/reviews?limit={limit}&shuffle=true"
         if company:

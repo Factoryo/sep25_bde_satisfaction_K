@@ -167,6 +167,9 @@ class TrustpilotJSONLDScraper:
         else:
             company_name_clean = company_name
         
+        page = start_page
+        page_reviews = []
+        
         for page in range(start_page, start_page + self.max_pages):
             if page == 1:
                 url = f"https://www.trustpilot.com/review/{company_name_clean}"

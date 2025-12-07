@@ -204,6 +204,7 @@ class TrustpilotMassScraper:
 
         all_reviews = []
         company_info = {}
+        page = start_page
         
         for page in range(start_page, start_page + self.max_pages_per_company):
             if total_reviews >= self.reviews_per_company:

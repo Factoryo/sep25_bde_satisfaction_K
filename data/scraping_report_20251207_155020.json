@@ -1,0 +1,209 @@
+{
+  "generated_at": "2025-12-07T15:50:20.488176",
+  "companies_scraped": {
+    "ubereats.com": {
+      "status": "completed",
+      "reviews_count": 3145,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/ubereats.com",
+        "company_name": "UberEATS",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:06:08.428996"
+      }
+    },
+    "deliveroo.com": {
+      "status": "completed",
+      "reviews_count": 5,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/deliveroo.com",
+        "company_name": "Deliveroo",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:08:53.834341"
+      }
+    },
+    "doordash.com": {
+      "status": "completed",
+      "reviews_count": 310,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/doordash.com",
+        "company_name": "DoorDash",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:09:47.422884"
+      }
+    },
+    "verizon.com": {
+      "status": "completed",
+      "reviews_count": 358,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/verizon.com",
+        "company_name": "Verizon",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:10:48.091304"
+      }
+    },
+    "att.com": {
+      "status": "completed",
+      "reviews_count": 15,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/att.com",
+        "company_name": "AT&T",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:12:16.012526"
+      }
+    },
+    "t-mobile.com": {
+      "status": "completed",
+      "reviews_count": 10,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/t-mobile.com",
+        "company_name": "T-Mobile",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:13:12.870620"
+      }
+    },
+    "revolut.com": {
+      "status": "completed",
+      "reviews_count": 3500,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/revolut.com",
+        "company_name": "Revolut",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:14:13.364424"
+      }
+    },
+    "n26.com": {
+      "status": "completed",
+      "reviews_count": 3088,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/n26.com",
+        "company_name": "N26",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:17:24.174160"
+      }
+    },
+    "coinbase.com": {
+      "status": "completed",
+      "reviews_count": 832,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/coinbase.com",
+        "company_name": "Coinbase",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:20:09.783907"
+      }
+    },
+    "showroomprive.com": {
+      "status": "completed",
+      "reviews_count": 3500,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/showroomprive.com",
+        "company_name": "Showroomprive",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:22:25.947937"
+      }
+    },
+    "vinted.fr": {
+      "status": "completed",
+      "reviews_count": 3450,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/vinted.fr",
+        "company_name": "Vinted FR",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:25:31.588013"
+      }
+    },
+    "leboncoin.fr": {
+      "status": "completed",
+      "reviews_count": 3450,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/leboncoin.fr",
+        "company_name": "leboncoin",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:28:28.886424"
+      }
+    },
+    "cdiscount.com": {
+      "status": "completed",
+      "reviews_count": 3450,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/cdiscount.com",
+        "company_name": "Cdiscount",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:31:44.482538"
+      }
+    },
+    "fnac.com": {
+      "status": "completed",
+      "reviews_count": 3500,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/fnac.com",
+        "company_name": "Fnac",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:34:57.301809"
+      }
+    },
+    "sncf.com": {
+      "status": "completed",
+      "reviews_count": 1667,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/sncf.com",
+        "company_name": "Sncf",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:38:01.198250"
+      }
+    },
+    "orange.fr": {
+      "status": "completed",
+      "reviews_count": 3218,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/orange.fr",
+        "company_name": "Orange",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:39:54.969522"
+      }
+    },
+    "freemobile.fr": {
+      "status": "completed",
+      "reviews_count": 3300,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/freemobile.fr",
+        "company_name": "Free mobile",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:42:53.612409"
+      }
+    },
+    "bouyguestelecom.fr": {
+      "status": "completed",
+      "reviews_count": 3132,
+      "company_info": {
+        "company_url": "https://fr.trustpilot.com/review/bouyguestelecom.fr",
+        "company_name": "Bouygues Telecom",
+        "trustscore": 0.0,
+        "total_reviews": 0,
+        "scraped_at": "2025-12-07T15:47:34.067547"
+      }
+    }
+  },
+  "summary": {
+    "total_companies": 18,
+    "successful_companies": 18,
+    "failed_companies": 0,
+    "total_reviews": 39930
+  }
+}

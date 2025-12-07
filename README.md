@@ -94,14 +94,12 @@ python scripts/ml/data_drift_monitor.py
 
 Génère des rapports JSON et visualisations dans `docs/data_drift_reports/`
 
-### Automatisation PowerShell
+### Scraping Manuel
 
-```powershell
-# Menu interactif de gestion
-.\scripts\automation.ps1
+```bash
+# Lancer le scraping massif (52 entreprises)
+python -m etl_elt.scripts.mass_scraping
 ```
-
-Options: Start/Stop services, trigger scraping, check status
 
 ## Structure du Projet
 
@@ -113,10 +111,13 @@ sep25_bde_satisfaction_K/
 │   └── ml_api.py        # API ML prédictions
 ├── dashboard/            # Streamlit dashboard
 ├── data/                 # Données scrapées (raw/processed)
+├── etl_elt/              # Pipeline ETL/ELT
+│   ├── scrapers/        # Scrapers Trustpilot (reviews, categories)
+│   ├── scripts/         # Scripts de scraping massif
+│   └── utils/           # Helpers et configuration
 ├── scripts/
 │   ├── database/        # Load PostgreSQL/Elasticsearch
-│   ├── ml/              # Training, drift detection
-│   └── automation.ps1   # Menu gestion services
+│   └── ml/              # Training, drift detection
 ├── notebooks/            # Jupyter analysis
 ├── monitoring/           # Prometheus + Grafana config
 ├── docker/               # Dockerfiles
