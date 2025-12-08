@@ -58,6 +58,8 @@ def run_daily_scraping():
     
     from scrapers.trustpilot_reviews_scraper import TrustpilotReviewsScraper
     import json
+    import os
+    from pathlib import Path
 
     COMPANIES = [
         "amazon.com", "amazon.co.uk", "ebay.com", "aliexpress.com",
@@ -66,16 +68,34 @@ def run_daily_scraping():
         "vinted.fr", "leboncoin.fr", "sncf.com", "cdiscount.com"
     ]
     
+    # Dossier des données
+    data_dir = Path('/app/data/raw')
+    
+    # Détecter les entreprises déjà scrapées
+    existing_files = {f.stem.replace('_reviews', '').replace('_', '.') 
+                      for f in data_dir.glob('*_reviews.json')}
+    
+    # Filtrer les entreprises non encore scrapées
+    companies_to_scrape = [c for c in COMPANIES if c not in existing_files]
+    
+    print(f"Entreprises déjà scrapées: {len(existing_files)}")
+    print(f"Entreprises à scraper: {len(companies_to_scrape)}")
+    
+    if not companies_to_scrape:
+        print("Toutes les entreprises ont déjà été scrapées!")
+        return {'companies_scraped': 0, 'total_reviews': 0, 'skipped': len(COMPANIES)}
+    
     results = {
         'date': datetime.now().isoformat(),
         'companies_scraped': 0,
+        'companies_skipped': len(existing_files),
         'total_reviews': 0,
         'errors': []
     }
     
     scraper = TrustpilotReviewsScraper(delay=2.0)
     
-    for company in COMPANIES:
+    for company in companies_to_scrape:
         try:
             print(f"Scraping {company}...")
             company_url = f"https://www.trustpilot.com/review/{company}"
