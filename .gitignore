@@ -6,7 +6,7 @@ __pycache__/
 *.egg-info/
 *.egg
 
-# Virtual env
+# Environnement virtuel
 .venv/
 venv/
 env/
@@ -19,11 +19,11 @@ env/
 # Jupyter
 .ipynb_checkpoints/
 
-# Env variables
+# Variables d'environnement
 .env
 .env.local
 
-# Data files (trop gros pour Git)
+# Données (trop gros pour Git)
 data/raw/*.json
 data/raw/*.csv
 data/processed/*.json
@@ -31,7 +31,7 @@ data/processed/*.csv
 data/processed/*.pkl
 etl_elt/data/
 
-# ML models
+# Modèles ML
 *.pkl
 *.joblib
 scripts/ml/models/*.pkl
@@ -44,7 +44,7 @@ airflow/logs/
 # Airflow
 airflow/*.db
 
-# Docker volumes (local)
+# Docker
 .docker/
 
 # OS

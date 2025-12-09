@@ -1,6 +1,6 @@
 """
-Script pour lancer le scraping manuellement.
-Détecte automatiquement les entreprises déjà scrapées et les ignore.
+Script pour lancer le scraping manuellement
+Détecte automatiquement les entreprises déjà scrapées et les ignore
 
 Usage:
     python scripts/scraping/run_scraping.py                    # Scrape toutes les nouvelles
@@ -77,7 +77,7 @@ def run_scraping(companies: list, data_dir: Path, force: bool = False):
     """Lance le scraping pour les entreprises spécifiées"""
     from scrapers.trustpilot_jsonld_scraper import TrustpilotJSONLDScraper
     
-    # Vérifier ce qui existe déjà
+    # Vérifie ce qui existe déjà
     existing = get_existing_companies(data_dir)
     
     if not force:
@@ -87,14 +87,14 @@ def run_scraping(companies: list, data_dir: Path, force: bool = False):
             print(f"⏭️  {skipped} entreprises déjà scrapées (ignorées)")
     else:
         to_scrape = companies
-        print("⚠️  Mode force: re-scraping de toutes les entreprises")
+        print("Mode force: re-scraping de toutes les entreprises")
     
     if not to_scrape:
-        print("✅ Toutes les entreprises ont déjà été scrapées!")
+        print("Toutes les entreprises ont déjà été scrapées")
         print(f"   Fichiers existants: {len(existing)}")
         return
     
-    print(f"\n🚀 Scraping de {len(to_scrape)} entreprise(s)...\n")
+    print(f"\nScraping de {len(to_scrape)} entreprise(s)...\n")
     
     scraper = TrustpilotJSONLDScraper(delay=3.0, max_pages=50)
     
@@ -123,18 +123,18 @@ def run_scraping(companies: list, data_dir: Path, force: bool = False):
                 n_reviews = len(reviews.get('reviews', []))
                 results['success'].append(company)
                 results['total_reviews'] += n_reviews
-                print(f"   ✅ {n_reviews} avis sauvegardés")
+                print(f"   {n_reviews} avis sauvegardés")
             else:
                 results['failed'].append(company)
-                print(f"   ❌ Aucun avis récupéré")
+                print(f"   Aucun avis récupéré")
                 
         except Exception as e:
             results['failed'].append(company)
-            print(f"   ❌ Erreur: {e}")
+            print(f"   Erreur: {e}")
     
     # Résumé
     print("\n" + "=" * 50)
-    print("📊 RÉSUMÉ")
+    print("Résumé")
     print("=" * 50)
     print(f"   Succès: {len(results['success'])}")
     print(f"   Échecs: {len(results['failed'])}")
@@ -150,7 +150,7 @@ def run_scraping(companies: list, data_dir: Path, force: bool = False):
     log_path.parent.mkdir(exist_ok=True)
     with open(log_path, 'w') as f:
         json.dump(results, f, indent=2)
-    print(f"\n📝 Log sauvegardé: {log_path}")
+    print(f"\nLog sauvegardé: {log_path}")
 
 
 def main():
@@ -170,7 +170,7 @@ def main():
     data_dir.mkdir(parents=True, exist_ok=True)
     
     if args.list:
-        print("📋 Liste des entreprises configurées:")
+        print("Liste des entreprises configurées:")
         for c in COMPANIES:
             print(f"   - {c}")
         print(f"\nTotal: {len(COMPANIES)} entreprises")
@@ -180,7 +180,7 @@ def main():
         existing = get_existing_companies(data_dir)
         missing = set(COMPANIES) - existing
         
-        print("📊 Statut du scraping:")
+        print("Statut du scraping:")
         print(f"   Scrapées: {len(existing)}/{len(COMPANIES)}")
         print(f"   Manquantes: {len(missing)}")
         

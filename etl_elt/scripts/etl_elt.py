@@ -18,7 +18,7 @@ def main_etl_elt():
     outputFolder = "/app/extracts/"
     scriptFolder = "/app/scripts/"
 
-    """Main ETL"""
+    """ETL"""
     # TODO
     company_list = ["www.showroomprive.com", "loaded.com", "westernunion.com", "justfly.com", "www.facebook.com"]
 

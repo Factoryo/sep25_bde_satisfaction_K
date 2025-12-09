@@ -33,10 +33,10 @@ class PostgresLoader:
         try:
             self.conn = psycopg2.connect(**self.conn_params)
             self.cursor = self.conn.cursor()
-            logger.info("✓ Connexion à PostgreSQL établie")
+            logger.info("Connexion à PostgreSQL établie")
             return True
         except Exception as e:
-            logger.error(f"✗ Erreur de connexion PostgreSQL: {e}")
+            logger.error(f"Erreur de connexion PostgreSQL: {e}")
             return False
     
     def close(self):
@@ -68,18 +68,12 @@ class PostgresLoader:
         return companies_data
     
     def insert_category(self, category_name: str) -> int:
-        """Insert catégorie"""
+        """Insérer catégorie"""
         if not category_name:
             category_name = "Unknown"
         
         try:
             self.cursor.execute(
-                """
-                INSERT INTO Category (category_name) 
-                VALUES (%s) 
-                ON CONFLICT (category_name) DO UPDATE SET category_name = EXCLUDED.category_name
-                RETURNING category_id
-                """,
                 (category_name,)
             )
             category_id = self.cursor.fetchone()[0]
@@ -98,13 +92,6 @@ class PostgresLoader:
             
             # Insert
             self.cursor.execute(
-                """
-                INSERT INTO Entreprise (entreprise_id, entreprise_name, mail, phone, web_site, category_id)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (entreprise_id) DO UPDATE 
-                SET entreprise_name = EXCLUDED.entreprise_name,
-                    web_site = EXCLUDED.web_site
-                """,
                 (
                     entreprise_id,
                     company_data.get('company_name', 'Unknown'),
@@ -115,7 +102,7 @@ class PostgresLoader:
                 )
             )
             
-            # Ratings
+            # Notes
             total_reviews = company_data.get('total_reviews', 0)
             trustscore = company_data.get('trustscore', 0.0) or company_data.get('trust_score', 0.0)
             
@@ -140,17 +127,6 @@ class PostgresLoader:
                 one_star = total_reviews - five_star - four_star - three_star - two_star
             
             self.cursor.execute(
-                """
-                INSERT INTO Rating (entreprise_id, trustscore, one_star, two_star, three_star, four_star, five_star)
-                VALUES (%s, %s, %s, %s, %s, %s, %s)
-                ON CONFLICT (entreprise_id) DO UPDATE
-                SET trustscore = EXCLUDED.trustscore,
-                    one_star = EXCLUDED.one_star,
-                    two_star = EXCLUDED.two_star,
-                    three_star = EXCLUDED.three_star,
-                    four_star = EXCLUDED.four_star,
-                    five_star = EXCLUDED.five_star
-                """,
                 (entreprise_id, float(trustscore), one_star, two_star, three_star, four_star, five_star)
             )
             
@@ -158,14 +134,6 @@ class PostgresLoader:
             if 'address' in company_data or 'location' in company_data:
                 address = company_data.get('address', company_data.get('location', {}))
                 self.cursor.execute(
-                    """
-                    INSERT INTO Address (entreprise_id, street, zip_code, city, country)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (entreprise_id) DO UPDATE
-                    SET street = EXCLUDED.street,
-                        city = EXCLUDED.city,
-                        country = EXCLUDED.country
-                    """,
                     (
                         entreprise_id,
                         address.get('street'),
@@ -178,7 +146,7 @@ class PostgresLoader:
             return True
             
         except Exception as e:
-            logger.error(f"Erreur insertion entreprise {company_data.get('company_name')}: {e}")
+            logger.error(f"Erreur d'insertion des entreprise {company_data.get('company_name')}: {e}")
             return False
     
     def load_companies_to_postgres(self, data_dir: str):
@@ -188,7 +156,7 @@ class PostgresLoader:
         
         try:
             companies_data = self.load_json_files(data_dir)
-            logger.info(f"📊 {len(companies_data)} entreprises à charger")
+            logger.info(f"{len(companies_data)} entreprises à charger")
             
             success_count = 0
             
@@ -207,12 +175,12 @@ class PostgresLoader:
             
             # Commit
             self.conn.commit()
-            logger.info(f"✓ {success_count}/{len(companies_data)} entreprises chargées avec succès")
+            logger.info(f"{success_count}/{len(companies_data)} entreprises chargées avec succès")
             
             return True
             
         except Exception as e:
-            logger.error(f"✗ Erreur lors du chargement: {e}")
+            logger.error(f"Erreur lors du chargement: {e}")
             if self.conn:
                 self.conn.rollback()
             return False
@@ -221,7 +189,7 @@ class PostgresLoader:
 
 
 def main():
-    """Point entrée"""
+    """Point d'entrée"""
     import argparse
     
     parser = argparse.ArgumentParser(description='Charger les données Trustpilot dans PostgreSQL')
@@ -246,9 +214,9 @@ def main():
     success = loader.load_companies_to_postgres(args.data_dir)
     
     if success:
-        print("\n✓ Chargement terminé avec succès!")
+        print("\nChargement terminé")
     else:
-        print("\n✗ Échec du chargement")
+        print("\nÉchec du chargement")
         exit(1)
 
 
