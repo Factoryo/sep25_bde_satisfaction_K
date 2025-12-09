@@ -1,36 +1,36 @@
 {
   "best_model": "Logistic Regression",
-  "best_f1_score": 0.9352338688523283,
-  "training_date": "20251208_100412",
-  "dataset_size": 79203,
+  "best_f1_score": 0.9373583018240197,
+  "training_date": "20251209_160251",
+  "dataset_size": 82410,
   "n_features": 5000,
   "models_performance": {
     "Logistic Regression": {
-      "accuracy": 0.9380720914083707,
-      "precision": 0.9355986934486353,
-      "recall": 0.9380720914083707,
-      "f1": 0.9352338688523283,
-      "training_time": 3.474331
+      "accuracy": 0.9400558184686324,
+      "precision": 0.9372510517202476,
+      "recall": 0.9400558184686324,
+      "f1": 0.9373583018240197,
+      "training_time": 2.437806
     },
     "Naive Bayes": {
-      "accuracy": 0.9174925825389811,
-      "precision": 0.9188575649896134,
-      "recall": 0.9174925825389811,
-      "f1": 0.9115120610085892,
-      "training_time": 0.281116
+      "accuracy": 0.9187598592403835,
+      "precision": 0.919731292058472,
+      "recall": 0.9187598592403835,
+      "f1": 0.9128424408741175,
+      "training_time": 0.294318
     },
     "Random Forest": {
-      "accuracy": 0.9315068493150684,
-      "precision": 0.9330352619686112,
-      "recall": 0.9315068493150684,
-      "f1": 0.926104306155228,
-      "training_time": 26.494467
+      "accuracy": 0.9339885936172795,
+      "precision": 0.9357221066185449,
+      "recall": 0.9339885936172795,
+      "f1": 0.9291364276501249,
+      "training_time": 19.513789
     }
   },
   "sentiment_distribution": {
-    "Négatif": 51206,
-    "Positif": 22104,
-    "Neutre": 5893
+    "Négatif": 53215,
+    "Positif": 23223,
+    "Neutre": 5972
   },
   "tfidf_params": {
     "max_features": 5000,
