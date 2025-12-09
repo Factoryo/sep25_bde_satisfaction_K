@@ -39,7 +39,7 @@ docker ps
 
 ## Données collectées
 
-J'ai scrapé **52 entreprises** et récupéré environ **79 000 avis**. Les entreprises sont variées : e-commerce (Amazon, Cdiscount, Vinted), voyage (Booking, Airbnb), services (Uber, Netflix), etc.
+J'ai scrapé **60 entreprises** et récupéré environ **82 400 avis**. Les entreprises sont variées : e-commerce (Amazon, Cdiscount, Vinted), voyage (Booking, Airbnb), services (Uber, Netflix), livraison (UPS, FedEx, DHL), etc.
 
 Les données brutes sont en JSON dans `data/raw/`.
 

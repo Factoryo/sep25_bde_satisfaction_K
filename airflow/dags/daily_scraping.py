@@ -56,16 +56,33 @@ def run_daily_scraping():
     import sys
     sys.path.insert(0, '/app/etl_elt')
     
-    from scrapers.trustpilot_reviews_scraper import TrustpilotReviewsScraper
+    from scrapers.trustpilot_jsonld_scraper import TrustpilotJSONLDScraper
     import json
     import os
     from pathlib import Path
 
     COMPANIES = [
-        "amazon.com", "amazon.co.uk", "ebay.com", "aliexpress.com",
-        "apple.com", "microsoft.com", "google.com", "samsung.com",
-        "booking.com", "airbnb.com", "uber.com", "netflix.com",
-        "vinted.fr", "leboncoin.fr", "sncf.com", "cdiscount.com"
+        # E-commerce
+        "amazon.com", "amazon.fr", "ebay.com", "aliexpress.com", "etsy.com",
+        "cdiscount.com", "fnac.com", "darty.com", "boulanger.com",
+        # Mode & Lifestyle
+        "vinted.fr", "zalando.fr", "shein.com", "asos.com", "nike.com", "adidas.com",
+        # Voyage & Transport
+        "booking.com", "airbnb.fr", "tripadvisor.com", "expedia.com", "kayak.com",
+        "sncf.com", "ouigo.com", "blablacar.fr", "flixbus.fr",
+        "easyjet.com", "lufthansa.com", "airfrance.fr",
+        # Livraison
+        "ups.com", "fedex.com", "dhl.com", "chronopost.fr", "colissimo.fr", "mondial-relay.fr",
+        # Tech & Services
+        "apple.com", "samsung.com", "microsoft.com", "google.com",
+        "netflix.com", "spotify.com", "disney.com", "amazon-prime-video.com",
+        # Finance & Banque
+        "revolut.com", "n26.com", "boursorama.com", "klarna.com", "paypal.com",
+        # Télécom
+        "orange.fr", "sfr.fr", "bouyguestelecom.fr", "free.fr",
+        # Autres services
+        "uber.com", "deliveroo.fr", "ubereats.com", "leboncoin.fr",
+        "doctolib.fr", "linkedin.com", "indeed.com", "trustpilot.com", "zoom.us"
     ]
     
     # Dossier des données
@@ -93,14 +110,13 @@ def run_daily_scraping():
         'errors': []
     }
     
-    scraper = TrustpilotReviewsScraper(delay=2.0)
+    scraper = TrustpilotJSONLDScraper(delay=2.0)
     
     for company in companies_to_scrape:
         try:
             print(f"Scraping {company}...")
-            company_url = f"https://www.trustpilot.com/review/{company}"
-            reviews = scraper.scrape_all_reviews(
-                company_url=company_url,
+            reviews = scraper.scrape_company(
+                company_domain=company,
                 max_pages=10
             )
             
