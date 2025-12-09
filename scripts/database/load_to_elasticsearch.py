@@ -1,4 +1,3 @@
-"""Chargement Elasticsearch"""
 import json
 from elasticsearch import Elasticsearch, helpers
 from pathlib import Path
@@ -15,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class ElasticsearchLoader:
     def __init__(self, host='localhost', port=9200, scheme='http'):
-        """Init connexion"""
+        """Connexion"""
         # Auth
         try:
             self.es = Elasticsearch(
@@ -152,7 +151,6 @@ class ElasticsearchLoader:
                     company_info = data.get('company_info', {})
                     reviews = data.get('reviews', [])
                     
-                    # Enrichir
                     for review in reviews:
                         review['company_name'] = company_info.get('company_name', 'Unknown')
                         review['company_url'] = company_info.get('company_url', '')
@@ -167,7 +165,6 @@ class ElasticsearchLoader:
         return all_reviews
     
     def prepare_bulk_actions(self, reviews: List[Dict]):
-        """Prépare bulk"""
         for review in reviews:
             # ID
             review_id = review.get('review_link', '').split('/')[-1]
@@ -182,7 +179,6 @@ class ElasticsearchLoader:
             }
     
     def bulk_load_reviews(self, data_dir: str):
-        """Bulk load"""
         if not self.check_connection():
             return False
         
@@ -197,7 +193,6 @@ class ElasticsearchLoader:
                 logger.warning("Aucun avis trouvé")
                 return False
             
-            # Bulk insert
             success, failed = helpers.bulk(
                 self.es,
                 self.prepare_bulk_actions(reviews),
@@ -241,7 +236,7 @@ class ElasticsearchLoader:
             logger.error(f"Erreur statistiques: {e}")
     
     def sample_query(self):
-        """Requête exemple"""
+        """Exemple requête"""
         try:
             # Top 10
             query = {
@@ -266,11 +261,11 @@ class ElasticsearchLoader:
             print("=" * 50 + "\n")
             
         except Exception as e:
-            logger.error(f"Erreur requête exemple: {e}")
+            logger.error(f"Erreur: {e}")
 
 
 def main():
-    """Point entrée"""
+    """Point d'entrée"""
     import argparse
     
     parser = argparse.ArgumentParser(description='Charger les avis Trustpilot dans Elasticsearch')
@@ -288,7 +283,7 @@ def main():
     success = loader.bulk_load_reviews(args.data_dir)
     
     if success:
-        print("\n✓ Chargement terminé avec succès!")
+        print("\nChargement terminé")
         
         if args.stats:
             loader.get_index_stats()
@@ -296,7 +291,7 @@ def main():
         if args.sample:
             loader.sample_query()
     else:
-        print("\n✗ Échec du chargement")
+        print("\nÉchec du chargement")
         exit(1)
 
 

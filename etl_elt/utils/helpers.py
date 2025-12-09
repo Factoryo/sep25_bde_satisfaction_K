@@ -1,4 +1,4 @@
-"""Utilitaires scraping"""
+"""Scraping utilitaire"""
 
 import json
 import re
@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 def clean_text(text: str) -> str:
-    """Nettoie texte"""
+    """Nettoie le texte"""
     if not text:
         return ""
     
@@ -21,7 +21,7 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 def parse_rating(rating_str: str) -> float:
-    """Parse rating"""
+    """Parsing"""
     try:
         # Formats
         if '/' in rating_str:
@@ -34,7 +34,7 @@ def parse_rating(rating_str: str) -> float:
         return 0.0
 
 def save_to_csv(data: List[Dict], filename: str):
-    """Sauvegarde CSV"""
+    """Sauvegarde du CSV"""
     if not data:
         logger.warning("Aucune donnée à sauvegarder en CSV")
         return
@@ -49,17 +49,17 @@ def save_to_csv(data: List[Dict], filename: str):
     logger.info(f"Données sauvegardées en CSV: {filename}")
 
 def validate_company_name(company: str) -> bool:
-    """Valide nom"""
+    """Valide le nom"""
     # Domaine
     pattern = r'^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return bool(re.match(pattern, company))
 
 def generate_report(scraping_results: Dict[str, Any]) -> Dict[str, Any]:
-    """Génère rapport"""
+    """Génère le rapport"""
     total_reviews = len(scraping_results.get('reviews', []))
     company_info = scraping_results.get('company_info', {})
     
-    # Stats
+    # Statistiques
     ratings = [review.get('rating', 0) for review in scraping_results.get('reviews', [])]
     avg_rating = sum(ratings) / len(ratings) if ratings else 0
     
@@ -75,7 +75,7 @@ def generate_report(scraping_results: Dict[str, Any]) -> Dict[str, Any]:
     return report
 
 def export_formats(data: Dict[str, Any], base_filename: str):
-    """Export multi-formats"""
+    """Export multi-format"""
     # JSON
     json_filename = f"{base_filename}.json"
     with open(json_filename, 'w', encoding='utf-8') as f:
@@ -92,4 +92,4 @@ def export_formats(data: Dict[str, Any], base_filename: str):
     with open(report_filename, 'w', encoding='utf-8') as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
     
-    logger.info(f"Données exportées dans multiple formats: {base_filename}*")
+    logger.info(f"Données exportées: {base_filename}*")

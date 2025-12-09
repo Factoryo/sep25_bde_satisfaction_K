@@ -21,11 +21,11 @@ logging.basicConfig(
 )
 
 def main():
-    """Scraping massif"""
+    """Scraping de masse"""
     
     # Entreprises
     COMPANIES = [
-        # E-commerce & Retail
+        # E-commerce
         "amazon.com",
         "amazon.co.uk",
         "ebay.com",
@@ -43,7 +43,7 @@ def main():
         "dell.com",
         "hp.com",
         
-        # Services & Apps
+        # Services
         "facebook.com",
         "instagram.com",
         "twitter.com",
@@ -53,7 +53,7 @@ def main():
         "zoom.us",
         "paypal.com",
         
-        # Travel & Transport
+        # Voyage
         "booking.com",
         "airbnb.com",
         "expedia.com",
@@ -62,19 +62,19 @@ def main():
         "lyft.com",
         "ryanair.com",
         
-        # Fashion & Lifestyle
+        # Mode
         "asos.com",
         "zara.com",
         "hm.com",
         "nike.com",
         "adidas.com",
         
-        # Food Delivery
+        # Livraison
         "ubereats.com",
         "deliveroo.com",
         "doordash.com",
         
-        # Telecom & Utilities
+        # Telecom
         "verizon.com",
         "att.com",
         "t-mobile.com",
@@ -84,7 +84,7 @@ def main():
         "n26.com",
         "coinbase.com",
         
-        # France spécifique
+        # Entreprises françaises
         "showroomprive.com",
         "vinted.fr",
         "leboncoin.fr",
@@ -96,12 +96,12 @@ def main():
         "bouyguestelecom.fr"
     ]
     
-    print("🚀 SCRAPING MASSIF TRUSTPILOT")
+    print("Scraping de masse démarré")
     print("=" * 60)
-    print(f"📋 {len(COMPANIES)} entreprises à scraper")
-    print(f"🎯 Objectif: 10,000+ reviews par entreprise")
-    print(f"⏰ Début: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print(f"🔄 Stratégie: Multi-filtres par étoiles (5★ → 1★)")
+    print(f"{len(COMPANIES)} entreprises à scraper")
+    print(f"Objectif: 10,000+ reviews par entreprise")
+    print(f"Début: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"Stratégie: Multi-filtres par étoiles (5★ → 1★)")
     print("=" * 60)
     
     # Dossiers
@@ -114,13 +114,13 @@ def main():
     # Scraping
     for i, company_domain in enumerate(COMPANIES, 1):
         print(f"\n{'='*60}")
-        print(f"🏢 Entreprise {i}/{len(COMPANIES)}: {company_domain}")
+        print(f"Entreprise {i}/{len(COMPANIES)}: {company_domain}")
         print(f"{'='*60}")
         
         # Vérifie si déjà scrapé
         output_file = f"data/raw/{company_domain.replace('.', '_')}_reviews.json"
         if os.path.exists(output_file):
-            print(f"⏭️  Déjà scrapé, fichier existant: {output_file}")
+            print(f"Déjà scrapé, fichier existant: {output_file}")
             continue
         
         try:
@@ -131,7 +131,7 @@ def main():
             scraper = TrustpilotReviewsScraper(delay=2.0)
             
             # Scrape
-            print(f"🔄 Démarrage du scraping avec multi-filtres...")
+            print(f"Démarrage du scraping avec multi-filtres...")
             reviews = scraper.scrape_all_reviews(
                 company_url=company_url,
                 use_filters=True, 
@@ -159,19 +159,19 @@ def main():
                 'output_file': output_file
             }
             
-            print(f"✅ {company_domain}: {len(reviews)} reviews scrapées")
-            print(f"💾 Sauvegardé dans: {output_file}")
+            print(f"{company_domain}: {len(reviews)} reviews scrapées")
+            print(f"Sauvegardé dans: {output_file}")
             
             # Pause
             if i < len(COMPANIES):
                 import time
                 import random
                 pause = random.uniform(5.0, 10.0)
-                print(f"⏸️  Pause de {pause:.1f}s avant la prochaine entreprise...")
+                print(f"Pause de {pause:.1f}s avant la prochaine entreprise...")
                 time.sleep(pause)
                 
         except Exception as e:
-            logging.error(f"❌ Erreur sur {company_domain}: {e}")
+            logging.error(f"Erreur sur {company_domain}: {e}")
             results[company_domain] = {
                 'status': 'failed',
                 'error': str(e),
@@ -185,10 +185,10 @@ def main():
         generate_final_report(results)
         
     except KeyboardInterrupt:
-        print("\n⏹️  Scraping interrompu par l'utilisateur")
+        print("\nScraping interrompu par l'utilisateur")
         generate_final_report(results)
     except Exception as e:
-        print(f"\n❌ Erreur générale: {e}")
+        print(f"\nErreur générale: {e}")
         logging.error(f"Erreur générale: {e}", exc_info=True)
 
 def generate_final_report(results: dict):
@@ -226,16 +226,16 @@ def generate_final_report(results: dict):
         json.dump(report, f, indent=2, ensure_ascii=False)
     
     # Afficher le résumé
-    print(f"\n📊 RAPPORT FINAL")
+    print(f"\nRAPPORT FINAL")
     print("=" * 50)
-    print(f"🏢 Entreprises totales: {report['summary']['total_companies']}")
-    print(f"✅ Réussies: {report['summary']['successful_companies']}")
-    print(f"❌ Échecs: {report['summary']['failed_companies']}")
-    print(f"📝 Reviews totales: {report['summary']['total_reviews']}")
-    print(f"📄 Rapport sauvegardé: {report_file}")
+    print(f"Total entreprises: {report['summary']['total_companies']}")
+    print(f"Réussites: {report['summary']['successful_companies']}")
+    print(f"Échecs: {report['summary']['failed_companies']}")
+    print(f"Total avis: {report['summary']['total_reviews']}")
+    print(f"Rapport sauvegardé: {report_file}")
     
     # Détail
-    print(f"\n📋 DÉTAIL PAR ENTREPRISE:")
+    print(f"\nDÉTAIL PAR ENTREPRISE:")
     for company, data in report['companies_scraped'].items():
         status_icon = "✅" if data['status'] == 'completed' else "❌"
         print(f"  {status_icon} {company}: {data['reviews_count']} reviews")

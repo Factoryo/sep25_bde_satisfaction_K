@@ -80,7 +80,7 @@ def create_company_data_dataframe(company_list):
 
 
 def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
-    """Insert SQL"""
+    """Insere SQL"""
     companies_df = pd.read_csv(csv_file, dtype='str')
     cur= conn.cursor()
 
@@ -138,7 +138,7 @@ def insert_company_metadatas_from_csv_in_sql(csv_file, conn):
                                         )
         cur.execute(sql_insert_request)
 
-        # 4. Rating
+        # 4. Note
         sql_insert_request = """
                              INSERT INTO Rating (entreprise_id, one_star, two_star, three_star, four_star, five_star, trustScore)
                              VALUES ('{entreprise_id}','{one_star}','{two_star}','{three_star}','{four_star}','{five_star}','{trustScore}')

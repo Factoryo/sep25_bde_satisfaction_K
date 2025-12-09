@@ -14,7 +14,7 @@
 
 ## Dashboards recommandés
 
-### 1. Distribution des ratings
+### 1. Distribution des notes
 - Type: **Pie chart**
 - Metric: Count
 - Bucket: Terms sur `rating`

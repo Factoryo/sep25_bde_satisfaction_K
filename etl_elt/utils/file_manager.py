@@ -10,7 +10,7 @@ class ScrapingStateManager:
         os.makedirs(self.state_dir, exist_ok=True)
         
     def save_state(self, company: str, last_page: int, total_reviews: int):
-        """Sauvegarde état"""
+        """Sauvegarde l'état"""
         state = {
             'company': company,
             'last_page': last_page,

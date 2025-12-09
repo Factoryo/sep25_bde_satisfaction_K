@@ -1,10 +1,10 @@
-"""Chargement toutes données"""
+"""Chargement de toutes les données"""
 import sys
 import time
 import argparse
 from pathlib import Path
 
-# Path
+# Chemin
 current_dir = Path(__file__).parent
 sys.path.insert(0, str(current_dir))
 
@@ -27,7 +27,7 @@ def wait_for_services():
     print_header("Vérification des services")
     
     # PostgreSQL
-    print("⏳ Attente de PostgreSQL...")
+    print("Chargement de PostgreSQL...")
     max_retries = 30
     for i in range(max_retries):
         try:
@@ -48,7 +48,7 @@ def wait_for_services():
             time.sleep(2)
     
     # Elasticsearch
-    print("⏳ Attente d'Elasticsearch...")
+    print("Chargement d'Elasticsearch...")
     for i in range(max_retries):
         try:
             es = Elasticsearch([{'host': 'localhost', 'port': 9200, 'scheme': 'http'}])
@@ -96,7 +96,7 @@ def load_elasticsearch_data(data_dir: str, host='localhost', port=9200):
 
 
 def verify_data():
-    """Vérifie données"""
+    """Vérifie les données"""
     print_header("Vérification des données")
     
     import psycopg2
@@ -134,7 +134,7 @@ def verify_data():
         conn.close()
         
     except Exception as e:
-        print(f"✗ Erreur vérification PostgreSQL: {e}")
+        print(f"Erreur vérification PostgreSQL: {e}")
     
     # Elasticsearch
     try:
@@ -148,18 +148,16 @@ def verify_data():
         print(f"  - {count['count']} avis")
         
     except Exception as e:
-        print(f"✗ Erreur vérification Elasticsearch: {e}")
+        print(f"Erreur vérification Elasticsearch: {e}")
 
 
 def show_next_steps():
-    """Étapes suivantes"""
     print_header("Prochaines étapes")
-    
-    print("✓ Données chargées avec succès!\n")
+    print("Données chargées\n")
     print("Vous pouvez maintenant:")
     print("  1. Accéder à Kibana: http://localhost:5601")
     print("     - Créer l'index pattern 'trustpilot_reviews'")
-    print("     - Créer les visualisations et dashboard")
+    print("     - Créer les visualisations et le dashboard")
     print("     - Voir: docs/KIBANA_SETUP.md pour les instructions\n")
     print("  2. Exécuter les requêtes SQL:")
     print("     - Voir: scripts/database/sql_queries.sql")
@@ -176,7 +174,7 @@ def show_next_steps():
 
 
 def main():
-    """Point entrée"""
+    """Point d'entrée"""
     parser = argparse.ArgumentParser(
         description='Charger les données Trustpilot dans PostgreSQL et Elasticsearch'
     )
@@ -228,7 +226,7 @@ def main():
     # Répertoire
     data_dir = Path(args.data_dir)
     if not data_dir.exists():
-        print(f"✗ Le répertoire {data_dir} n'existe pas")
+        print(f"Le répertoire {data_dir} n'existe pas")
         print(f"  Veuillez d'abord scraper des données avec:")
         print(f"  python etl_elt/scripts/test_mass_scraping.py")
         return 1
@@ -240,15 +238,14 @@ def main():
         print(f"  Veuillez d'abord scraper des données")
         return 1
     
-    print(f"📁 Répertoire de données: {data_dir.absolute()}")
-    print(f"📊 {len(json_files)} fichiers JSON trouvés")
+    print(f"Répertoire de données: {data_dir.absolute()}")
+    print(f"{len(json_files)} fichiers JSON trouvés")
     
     # Services
     if not args.no_wait:
         if not wait_for_services():
             print("\nLes services ne sont pas disponibles")
             print("  Assurez-vous que Docker Desktop est lancé")
-            print("  Et exécutez: docker-compose up -d")
             return 1
     
     success = True

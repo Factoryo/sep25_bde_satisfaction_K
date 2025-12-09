@@ -272,7 +272,6 @@ class TrustpilotMassScraper:
         }
 
     def scrape_companies(self, companies: List[str], resume: bool = True) -> Dict:
-        """Scrape plusieurs"""
         results = {}
         
         for i, company in enumerate(companies, 1):
@@ -284,7 +283,7 @@ class TrustpilotMassScraper:
                 result = self.scrape_company(company, resume)
                 results[company] = result
 
-                self.logger.info(f"{company}: {result['total_reviews']} reviews scrapées")
+                self.logger.info(f"{company}: {result['total_reviews']} avis scrapés")
 
                 if i < len(companies):
                     pause = random.uniform(5.0, 10.0)

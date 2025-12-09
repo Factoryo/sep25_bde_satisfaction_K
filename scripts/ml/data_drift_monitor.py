@@ -1,9 +1,5 @@
 """
 Détection du data drift sur les avis Trustpilot.
-
-Le drift c'est quand la distribution des données change avec le temps.
-Par exemple si on reçoit soudainement plus d'avis négatifs.
-
 J'utilise le test de Kolmogorov-Smirnov pour comparer les distributions.
 """
 import pandas as pd

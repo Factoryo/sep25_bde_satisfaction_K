@@ -31,7 +31,7 @@ def run_data_drift_detection():
     sys.path.insert(0, '/app/scripts/ml')
     from data_drift_monitor import DataDriftMonitor
     
-    print("Lancement de la détection de data drift...")
+    print("Lancement de la détection du data drift...")
     
     monitor = DataDriftMonitor(
         es_host='elasticsearch',
@@ -46,8 +46,7 @@ def run_data_drift_detection():
     drift_detected = report.get('overall_drift_detected', False)
     
     if drift_detected:
-        print("ALERTE: Data drift détecté!")
-        print("   Réentraînement du modèle recommandé")
+        print("Data drift détecté")
         
         with open('/app/data/logs/drift_alerts.log', 'a') as f:
             f.write(f"{datetime.now()}: Data drift détecté\n")

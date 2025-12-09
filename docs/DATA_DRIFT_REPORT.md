@@ -1,7 +1,7 @@
 # Rapport de Dérive des Données (Data Drift)
 
-**Date de génération** : 7 décembre 2025  
-**Période analysée** : Données de scraping Trustpilot (52 entreprises, 79 203 avis)
+**Date générée** : 7 décembre 2025  
+**Période analysée** : Données de scraping Trustpilot (60 entreprises, 	82 410 avis)
 
 ---
 
@@ -140,5 +140,3 @@ DAG Airflow : `ml_monitoring.py` (tous les jours à 3h)
 ## 8. Conclusion
 
 Le modèle actuel (Logistic Regression, F1=0.935) est performant et stable. Le monitoring quotidien permettra de détecter rapidement tout changement dans la distribution des données.
-
-**Prochaine revue prévue** : 7 janvier 2026
