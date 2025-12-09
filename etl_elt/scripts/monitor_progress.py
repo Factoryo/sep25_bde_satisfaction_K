@@ -53,7 +53,7 @@ def monitor_progress():
     print(f"STATISTIQUES GLOBALES:")
     print(f"Entreprises complétées: {completed_companies}")
     print(f"Entreprises en cours: {in_progress_companies}")
-    print(f"Reviews totales: {total_reviews}")
+    print(f"Total avis: {total_reviews}")
     print(f"Lots sauvegardés: {len(batch_files)}")
     
     if batches_per_company:

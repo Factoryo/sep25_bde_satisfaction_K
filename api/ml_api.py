@@ -59,7 +59,7 @@ async def load_models():
         
         if not model_path.exists():
             logger.error(f"Modèle non trouvé: {model_path}")
-            logger.error("Exécutez d'abord le notebook pour entraîner et sauvegarder les modèles")
+            logger.error("Exécuter d'abord le notebook pour entraîner et sauvegarder les modèles")
             return
         
         logger.info(f"Chargement du modèle: {model_path}")

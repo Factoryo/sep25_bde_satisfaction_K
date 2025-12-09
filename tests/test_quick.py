@@ -63,6 +63,6 @@ except Exception as e:
     print(f"   ÉCHOUÉ: {e}")
 
 print("\n" + "=" * 60)
-print("Tests terminés!")
+print("Tests terminés")
 print("\nAccédez à la documentation interactive:")
 print(f"   http://localhost:8002/docs")

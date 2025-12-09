@@ -33,7 +33,7 @@ def load_reviews_from_files() -> List[dict]:
     Charge les avis depuis les fichiers JSON scrapés.
     
     Les fichiers sont dans data/raw/ avec le format: {company}_reviews.json
-    On met en cache pour éviter de relire les fichiers à chaque requête.
+    Cache pour éviter de relire les fichiers à chaque requête.
     """
     global _reviews_cache
     if _reviews_cache is not None:

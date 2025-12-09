@@ -57,12 +57,12 @@ function Start-Test {
     python scripts/test_mass_scraping.py
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "`n[OK] Test termine avec succes!" -ForegroundColor Green
+        Write-Host "`n[OK] Test termine" -ForegroundColor Green
         Write-Host "Resultats dans: data/test/" -ForegroundColor Cyan
-        Write-Host "`nVerifiez les resultats avec: .\scraping.ps1 check`n" -ForegroundColor Yellow
+        Write-Host "`nVerif resultats avec: .\scraping.ps1 check`n" -ForegroundColor Yellow
     } else {
-        Write-Host "`n[ERREUR] Erreur lors du test" -ForegroundColor Red
-        Write-Host "Consultez les logs: logs/mass_scraping.log`n" -ForegroundColor Yellow
+        Write-Host "`n[ERREUR] Erreur du test" -ForegroundColor Red
+        Write-Host "Logs: logs/mass_scraping.log`n" -ForegroundColor Yellow
     }
 }
 
@@ -72,31 +72,21 @@ function Start-Production {
     Write-Host "          LANCEMENT DU SCRAPING COMPLET"
     Write-Host "=============================================================="
     Write-Host ""
-    Write-Host "ATTENTION: Scraping de longue duree!"
     Write-Host ""
     Write-Host "Configuration:"
-    Write-Host "  - Entreprises: 60+"
+    Write-Host "  - Entreprises: 60"
     Write-Host "  - Reviews max: ~10,000 par entreprise"
-    Write-Host "  - Total estime: ~600,000 reviews"
-    Write-Host "  - Duree estimee: 30-40 HEURES"
     Write-Host "  - Sortie: data/raw/"
     Write-Host ""
-    Write-Host "Recommandations:"
-    Write-Host "  - Lancer la nuit ou le weekend"
-    Write-Host "  - Garder l'ordinateur allume"
-    Write-Host "  - Connexion internet stable"
-    Write-Host "  - ~3 GB d'espace disque"
-    Write-Host ""
 
-    $confirm = Read-Host "Etes-vous sur de vouloir lancer le scraping complet? (OUI/non)"
+    $confirm = Read-Host "Lancer le scraping complet? (OUI/non)"
     if ($confirm -ne 'OUI') {
         Write-Host "[X] Scraping annule" -ForegroundColor Red
         Write-Host "Tapez 'OUI' en majuscules pour confirmer`n" -ForegroundColor Yellow
         return
     }
 
-    Write-Host "`nDemarrage du scraping massif...`n" -ForegroundColor Green
-    Write-Host "Pour interrompre: Ctrl+C (la progression sera sauvegardee)`n" -ForegroundColor Cyan
+    Write-Host "`nDemarrage du scraping de masse`n" -ForegroundColor Green
     
     # Créer les répertoires nécessaires
     New-Item -ItemType Directory -Path "data/raw" -Force | Out-Null
@@ -106,13 +96,13 @@ function Start-Production {
     python scripts/mass_scraping.py
     
     if ($LASTEXITCODE -eq 0) {
-        Write-Host "`n[OK] Scraping termine avec succes!" -ForegroundColor Green
+        Write-Host "`n[OK] Scraping termine" -ForegroundColor Green
         Write-Host "Resultats dans: data/raw/" -ForegroundColor Cyan
-        Write-Host "`nGenerez un rapport avec: .\scraping.ps1 check`n" -ForegroundColor Yellow
+        Write-Host "`nRapport avec: .\scraping.ps1 check`n" -ForegroundColor Yellow
     } else {
-        Write-Host "`n[ATTENTION] Scraping interrompu ou erreur" -ForegroundColor Yellow
-        Write-Host "Consultez les logs: logs/mass_scraping.log" -ForegroundColor Yellow
-        Write-Host "Vous pouvez relancer, le script reprendra ou il s'est arrete`n" -ForegroundColor Cyan
+        Write-Host "`nScraping interrompu ou erreur" -ForegroundColor Yellow
+        Write-Host "Logs/mass_scraping.log" -ForegroundColor Yellow
+        Write-Host "Relancer le script`n" -ForegroundColor Cyan
     }
 }
 

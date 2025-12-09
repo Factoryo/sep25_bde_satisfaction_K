@@ -242,6 +242,3 @@ elif page == "Analyses":
             st.metric("Entreprises", companies)
     else:
         st.warning("Aucune donnée disponible pour l'analyse")
-
-st.markdown("---")
-st.markdown("Tableau de Bord - Satisfaction Client © 2025")

@@ -20,7 +20,7 @@ def print_header(text):
 
 
 def wait_for_services():
-    """Vérifie services"""
+    """Vérifie les services"""
     import psycopg2
     from elasticsearch import Elasticsearch
     

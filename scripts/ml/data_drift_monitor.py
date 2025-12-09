@@ -161,7 +161,7 @@ class DataDriftMonitor:
         drift_detected = ks_pvalue < 0.05
         
         if drift_detected:
-            print(f"   DÉRIVE DÉTECTÉE dans la longueur des textes")
+            print(f"   Dérive détectée dans la longueur des textes")
         else:
             print(f"   Pas de dérive significative")
         
@@ -394,6 +394,6 @@ if __name__ == "__main__":
     report = monitor.generate_report()
     
     if report:
-        print("\nRapport de data drift généré avec succès!")
+        print("\nRapport de data drift généré avec succès")
     else:
         print("\nÉchec de la génération du rapport")

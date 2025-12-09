@@ -26,7 +26,7 @@ groups:
           summary: "ML API est DOWN"
           description: "L'API ML sur le port 8001 ne répond plus depuis {{ $value }} minutes"
 
-      # Alerte si taux d'erreur élevé (>5%)
+      # Alerte si le taux d'erreur est élevé (>5%)
       - alert: HighErrorRate
         expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
         for: 5m
@@ -37,7 +37,7 @@ groups:
           summary: "Taux d'erreur élevé détecté"
           description: "Le taux d'erreur 5xx est de {{ $value | humanizePercentage }} sur les 5 dernières minutes"
 
-      # Alerte si latence élevée (>500ms)
+      # Alerte si la latence est élevée (>500ms)
       - alert: HighLatency
         expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 0.5
         for: 5m
@@ -62,7 +62,7 @@ groups:
           summary: "Modèle ML non chargé"
           description: "Le modèle ML n'est pas chargé dans l'API"
 
-      # Alerte si confiance moyenne des prédictions < 70%
+      # Alerte si la confiance moyenne des prédictions < 70%
       - alert: LowPredictionConfidence
         expr: avg(ml_prediction_confidence) < 0.70
         for: 15m

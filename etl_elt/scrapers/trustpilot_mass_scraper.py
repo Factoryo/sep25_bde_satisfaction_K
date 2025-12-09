@@ -51,24 +51,24 @@ class TrustpilotMassScraper:
         """Extraction NEXT_DATA"""
         try:
             next_data_script = soup.find('script', id='__NEXT_DATA__')
-            if not next_data_script:
+            if not next_data_script or not next_data_script.string:
                 self.logger.warning("Balise __NEXT_DATA__ non trouvée")
                 return {'reviews': [], 'company_info': {}}
             
-            data = json.loads(next_data_script.string)
+            data = json.loads(str(next_data_script.string))
             return self.parse_next_data(data, company_name)
             
         except Exception as e:
-            self.logger.error(f"Erreur extraction NEXT_DATA: {e}")
+            self.logger.error(f"Erreur d'extraction de NEXT_DATA: {e}")
             return {'reviews': [], 'company_info': {}}
 
     def parse_next_data(self, data: Dict, company_name: str) -> Dict:
-        """Parse NEXT_DATA"""
+        """Parsing de NEXT_DATA"""
         reviews = []
         company_info = {}
         
         try:
-            # Reviews
+            # Avis
             reviews_data = data.get('props', {}).get('pageProps', {}).get('reviews', [])
             for review_data in reviews_data:
                 review = self.parse_review_json(review_data, company_name)
@@ -85,7 +85,7 @@ class TrustpilotMassScraper:
         return {'reviews': reviews, 'company_info': company_info}
 
     def parse_review_json(self, review_data: Dict, company_name: str) -> Optional[Dict]:
-        """Parse review JSON"""
+        """Parsing d'avis JSON"""
         try:
             consumer = review_data.get('consumer', {})
             dates = review_data.get('dates', {})
@@ -117,7 +117,7 @@ class TrustpilotMassScraper:
             return None
 
     def parse_company_info_json(self, business_unit: Dict, company_name: str) -> Dict:
-        """Parse infos entreprise"""
+        """Parsing infos entreprise"""
         company_info = {
             'company_name': company_name,
             'trustscore': str(business_unit.get('trustScore', '')),
@@ -149,7 +149,7 @@ class TrustpilotMassScraper:
             json.dump(progress, f, indent=2, ensure_ascii=False)
 
     def load_progress(self, company: str) -> Optional[Dict]:
-        """Charge progression"""
+        """Chargement progression"""
         progress_file = os.path.join(self.progress_dir, f"{company}_progress.json")
         if os.path.exists(progress_file):
             with open(progress_file, 'r', encoding='utf-8') as f:
@@ -170,7 +170,7 @@ class TrustpilotMassScraper:
             json.dump(progress, f, indent=2, ensure_ascii=False)
 
     def save_company_batch(self, company: str, reviews: List[Dict], batch_number: int):
-        """Sauvegarde lot"""
+        """Sauvegarde du lot"""
         batch_data = {
             'company': company,
             'batch_number': batch_number,

@@ -66,14 +66,14 @@ class TrustpilotReviewsScraper:
             
             # Pages vides
             if consecutive_empty_pages >= 3:
-                logger.info(f"Trouvé {consecutive_empty_pages} pages vides, arrêt")
+                logger.info(f"{consecutive_empty_pages} pages vides trouvées, arrêt")
                 break
             
             # URL page
             page_url = f"{company_url}?page={page}"
             
             try:
-                logger.info(f"Scraping page {page}")
+                logger.info(f"Scrape page {page}")
                 response = self.session.get(page_url, timeout=30)
                 response.raise_for_status()
                 
@@ -103,7 +103,7 @@ class TrustpilotReviewsScraper:
                 time.sleep(self.delay)
                 
             except Exception as e:
-                logger.error(f"Erreur lors du scraping page {page}: {e}")
+                logger.error(f"Erreur lors du scraping de la page {page}: {e}")
                 consecutive_empty_pages += 1
                 if consecutive_empty_pages >= 3:
                     break
@@ -145,7 +145,7 @@ class TrustpilotReviewsScraper:
                 page_url = f"{filter_url}&page={page}"
                 
                 try:
-                    logger.info(f"Scraping page {page} (filtre: {stars} étoiles)")
+                    logger.info(f"Scrape page {page} (filtre: {stars} étoiles)")
                     response = self.session.get(page_url, timeout=30)
                     response.raise_for_status()
                     
@@ -316,7 +316,6 @@ class TrustpilotReviewsScraper:
             else:
                 review['author_location'] = ''
             
-            # Reviews count
             # Nombre avis auteur
             author_info = card.find('div', attrs={'data-consumer-reviews-count': True})
             if author_info:

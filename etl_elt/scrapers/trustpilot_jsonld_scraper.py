@@ -14,6 +14,7 @@ class TrustpilotJSONLDScraper:
     Scraper Trustpilot qui extrait les avis depuis le HTML.
     
     J'ai testé plusieurs approches :
+    - Extension Chrome
     - API Trustpilot : pas publique, besoin d'un partenariat
     - JSON-LD embarqué : marche bien mais limité à ~20 avis/page
     - Parsing HTML direct : c'est ce que je fais ici
