@@ -14,29 +14,23 @@ logger = logging.getLogger(__name__)
 
 class ElasticsearchLoader:
     def __init__(self, host='localhost', port=9200, scheme='http'):
-        """Connexion"""
-        # Auth
         try:
             self.es = Elasticsearch(
                 [{'host': host, 'port': port, 'scheme': scheme}],
                 basic_auth=('elastic', 'elastic123')
             )
             if not self.es.ping():
-                # Sans auth
                 self.es = Elasticsearch(
                     [{'host': host, 'port': port, 'scheme': scheme}]
                 )
         except:
-            # Fallback
             self.es = Elasticsearch(
                 [{'host': host, 'port': port, 'scheme': scheme}]
             )
         self.index_name = 'trustpilot_reviews'
     
     def check_connection(self) -> bool:
-        """Vérif connexion"""
         try:
-            # Info
             info = self.es.info()
             if info:
                 logger.info("Connexion à Elasticsearch établie")
@@ -50,7 +44,6 @@ class ElasticsearchLoader:
             return False
     
     def create_index(self):
-        """Crée index"""
         mapping = {
             "settings": {
                 "number_of_shards": 1,
@@ -125,7 +118,7 @@ class ElasticsearchLoader:
         
         try:
             if self.es.indices.exists(index=self.index_name):
-                logger.info(f"ℹ Index '{self.index_name}' existe déjà")
+                logger.info(f"Index '{self.index_name}' existe déjà")
                 return True
             
             self.es.indices.create(index=self.index_name, body=mapping)
@@ -136,11 +129,9 @@ class ElasticsearchLoader:
             return False
     
     def load_json_files(self, data_dir: str) -> List[Dict]:
-        """Charge JSON"""
         data_dir = Path(data_dir)
         all_reviews = []
         
-        # Fichiers
         json_files = list(data_dir.glob("*_reviews.json")) + list(data_dir.glob("*_test.json"))
         
         for json_file in json_files:
@@ -166,7 +157,6 @@ class ElasticsearchLoader:
     
     def prepare_bulk_actions(self, reviews: List[Dict]):
         for review in reviews:
-            # ID
             review_id = review.get('review_link', '').split('/')[-1]
             if not review_id:
                 review_id = f"{review.get('company_name', 'unknown')}_{review.get('reviewer_name', 'anon')}_{review.get('date', 'unknown')}"
@@ -203,14 +193,11 @@ class ElasticsearchLoader:
             logger.info(f"{success} avis chargés avec succès")
             if failed:
                 logger.warning(f"{len(failed)} avis ont échoué")
-                # Erreurs
                 for i, error in enumerate(failed[:3]):
                     logger.error(f"  Exemple d'erreur {i+1}: {error}")
             
-            # Rafraîchir l'index
             self.es.indices.refresh(index=self.index_name)
             
-            # Stats
             count = self.es.count(index=self.index_name)
             logger.info(f"Total avis dans l'index: {count['count']}")
             
@@ -221,7 +208,6 @@ class ElasticsearchLoader:
             return False
     
     def get_index_stats(self):
-        """Stats index"""
         try:
             stats = self.es.indices.stats(index=self.index_name)
             count = self.es.count(index=self.index_name)

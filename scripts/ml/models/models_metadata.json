@@ -1,7 +1,7 @@
 {
   "best_model": "Logistic Regression",
   "best_f1_score": 0.9373583018240197,
-  "training_date": "20251209_160251",
+  "training_date": "20251211_144008",
   "dataset_size": 82410,
   "n_features": 5000,
   "models_performance": {
@@ -10,21 +10,21 @@
       "precision": 0.9372510517202476,
       "recall": 0.9400558184686324,
       "f1": 0.9373583018240197,
-      "training_time": 2.437806
+      "training_time": 3.057468
     },
     "Naive Bayes": {
       "accuracy": 0.9187598592403835,
       "precision": 0.919731292058472,
       "recall": 0.9187598592403835,
       "f1": 0.9128424408741175,
-      "training_time": 0.294318
+      "training_time": 0.299525
     },
     "Random Forest": {
       "accuracy": 0.9339885936172795,
       "precision": 0.9357221066185449,
       "recall": 0.9339885936172795,
       "f1": 0.9291364276501249,
-      "training_time": 19.513789
+      "training_time": 26.188472
     }
   },
   "sentiment_distribution": {

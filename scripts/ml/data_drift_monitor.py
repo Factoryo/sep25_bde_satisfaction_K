@@ -13,7 +13,6 @@ import seaborn as sns
 from scipy import stats
 
 class DataDriftMonitor:
-    """Compare les données récentes aux données historiques pour détecter des changements."""
     
     def __init__(self, es_host='localhost', es_port=9200):
         self.es = Elasticsearch([{'host': es_host, 'port': es_port, 'scheme': 'http'}])
@@ -21,11 +20,10 @@ class DataDriftMonitor:
         self.reports_dir.mkdir(parents=True, exist_ok=True)
         
     def load_data(self, index_name='trustpilot_reviews', days_back=30):
-        """Récupère les avis depuis Elasticsearch avec scroll (pour les gros volumes)."""
+        """Récupère les avis depuis Elasticsearch"""
         print(f"Chargement des données des {days_back} derniers jours...")
         
         try:
-            # Load
             response = self.es.search(
                 index=index_name,
                 scroll='2m',
@@ -46,14 +44,12 @@ class DataDriftMonitor:
             
             df = pd.DataFrame([hit['_source'] for hit in reviews])
             
-            # Date
             if 'created_at' in df.columns:
                 df['created_at'] = pd.to_datetime(df['created_at'], errors='coerce')
                 df['date'] = df['created_at']
             elif 'date' in df.columns:
                 df['date'] = pd.to_datetime(df['date'], errors='coerce')
             else:
-                # Default
                 df['date'] = datetime.now()
             
             print(f"{len(df)} avis chargés")
@@ -79,12 +75,11 @@ class DataDriftMonitor:
         return df_reference, df_current
     
     def detect_rating_drift(self, df_ref, df_curr):
-        """Dérive ratings"""
+        """Dridt ratings"""
         print("\n" + "="*80)
         print("ANALYSE DE DÉRIVE - RATINGS")
         print("="*80)
         
-        # Distribution
         ref_ratings = df_ref['rating'].value_counts(normalize=True).sort_index()
         curr_ratings = df_curr['rating'].value_counts(normalize=True).sort_index()
         
@@ -111,7 +106,6 @@ class DataDriftMonitor:
         else:
             print(f"   Pas de dérive significative (p >= 0.05)")
         
-        # Stats
         mean_ref = df_ref['rating'].mean()
         mean_curr = df_curr['rating'].mean()
         mean_change = mean_curr - mean_ref
@@ -133,12 +127,11 @@ class DataDriftMonitor:
         }
     
     def detect_text_length_drift(self, df_ref, df_curr):
-        """Dérive longueur"""
+        """Drift longueur"""
         print("\n" + "="*80)
         print("ANALYSE DE DÉRIVE - LONGUEUR DES TEXTES")
         print("="*80)
         
-        # Longueurs
         df_ref['text_length'] = df_ref['content'].fillna('').str.len()
         df_curr['text_length'] = df_curr['content'].fillna('').str.len()
         
@@ -163,7 +156,7 @@ class DataDriftMonitor:
         if drift_detected:
             print(f"   Dérive détectée dans la longueur des textes")
         else:
-            print(f"   Pas de dérive significative")
+            print(f"   Pas de dérive")
         
         return {
             'ks_statistic': float(ks_statistic),
@@ -175,7 +168,6 @@ class DataDriftMonitor:
         }
     
     def detect_company_distribution_drift(self, df_ref, df_curr):
-        """Dérive entreprises"""
         print("\n" + "="*80)
         print("ANALYSE DE DÉRIVE - DISTRIBUTION DES ENTREPRISES")
         print("="*80)
@@ -183,7 +175,6 @@ class DataDriftMonitor:
         ref_companies = df_ref['company_name'].value_counts(normalize=True)
         curr_companies = df_curr['company_name'].value_counts(normalize=True)
         
-        # Top 5 entreprises
         print("\nTop 5 entreprises - Référence:")
         for comp, pct in ref_companies.head(5).items():
             print(f"   {comp}: {pct:.2%}")
@@ -192,7 +183,6 @@ class DataDriftMonitor:
         for comp, pct in curr_companies.head(5).items():
             print(f"   {comp}: {pct:.2%}")
         
-        # Changements
         ref_set = set(ref_companies.index)
         curr_set = set(curr_companies.index)
         
@@ -215,7 +205,6 @@ class DataDriftMonitor:
         }
     
     def generate_visualization(self, df_ref, df_curr, report_data):
-        """Génère graphiques"""
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
         viz_path = self.reports_dir / f'drift_visualization_{timestamp}.png'
         
@@ -312,7 +301,7 @@ class DataDriftMonitor:
         df = self.load_data()
         
         if df.empty:
-            print("❌ Aucune donnée disponible")
+            print("Aucune donnée disponible")
             return None
         
         # Split
@@ -383,17 +372,11 @@ class DataDriftMonitor:
         return report
 
 if __name__ == "__main__":
-    print("""
-    ╔══════════════════════════════════════════════════════════════╗
-    ║         DATA DRIFT MONITOR - Trustpilot Reviews              ║
-    ║                Détection de Dérive des Données               ║
-    ╚══════════════════════════════════════════════════════════════╝
-    """)
     
     monitor = DataDriftMonitor()
     report = monitor.generate_report()
     
     if report:
-        print("\nRapport de data drift généré avec succès")
+        print("\nRapport de data drift généré")
     else:
         print("\nÉchec de la génération du rapport")

@@ -237,8 +237,8 @@ def generate_final_report(results: dict):
     # Détail
     print(f"\nDÉTAIL PAR ENTREPRISE:")
     for company, data in report['companies_scraped'].items():
-        status_icon = "✅" if data['status'] == 'completed' else "❌"
-        print(f"  {status_icon} {company}: {data['reviews_count']} reviews")
+        status = "[OK]" if data['status'] == 'completed' else "[FAIL]"
+        print(f"  {status} {company}: {data['reviews_count']} reviews")
 
 if __name__ == "__main__":
     main()

@@ -61,9 +61,9 @@ class PostgresLoader:
                     data = json.load(f)
                     if 'company_info' in data:
                         companies_data.append(data['company_info'])
-                        logger.info(f"✓ Chargé: {json_file.name}")
+                        logger.info(f"Chargé: {json_file.name}")
             except Exception as e:
-                logger.error(f"✗ Erreur lecture {json_file}: {e}")
+                logger.error(f"Erreur lecture {json_file}: {e}")
         
         return companies_data
     

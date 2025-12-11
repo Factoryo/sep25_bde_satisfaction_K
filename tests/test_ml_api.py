@@ -14,16 +14,16 @@ class Colors:
     END = '\033[0m'
 
 def print_success(message):
-    print(f"{Colors.GREEN}✓ {message}{Colors.END}")
+    print(f"{Colors.GREEN}[OK] {message}{Colors.END}")
 
 def print_error(message):
-    print(f"{Colors.RED}✗ {message}{Colors.END}")
+    print(f"{Colors.RED}[FAIL] {message}{Colors.END}")
 
 def print_warning(message):
-    print(f"{Colors.YELLOW}⚠ {message}{Colors.END}")
+    print(f"{Colors.YELLOW}[WARN] {message}{Colors.END}")
 
 def print_info(message):
-    print(f"{Colors.BLUE}ℹ {message}{Colors.END}")
+    print(f"{Colors.BLUE}>> {message}{Colors.END}")
 
 def test_health_check():
     print_info("Test 1/7: Health Check")
@@ -395,9 +395,9 @@ def main():
     total = len(results)
     
     for test_name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = "PASS" if result else "FAIL"
         color = Colors.GREEN if result else Colors.RED
-        print(f"{color}{status}{Colors.END} - {test_name}")
+        print(f"{color}[{status}]{Colors.END} - {test_name}")
     
     print("\n" + "="*70)
     

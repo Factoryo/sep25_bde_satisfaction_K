@@ -84,7 +84,7 @@ def run_scraping(companies: list, data_dir: Path, force: bool = False):
         to_scrape = [c for c in companies if c not in existing]
         skipped = len(companies) - len(to_scrape)
         if skipped > 0:
-            print(f"⏭️  {skipped} entreprises déjà scrapées (ignorées)")
+            print(f"{skipped} entreprises déjà scrapées (ignorées)")
     else:
         to_scrape = companies
         print("Mode force: re-scraping de toutes les entreprises")

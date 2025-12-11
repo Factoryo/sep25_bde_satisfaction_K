@@ -10,7 +10,6 @@ class ScrapingStateManager:
         os.makedirs(self.state_dir, exist_ok=True)
         
     def save_state(self, company: str, last_page: int, total_reviews: int):
-        """Sauvegarde"""
         state = {
             'company': company,
             'last_page': last_page,
@@ -23,7 +22,6 @@ class ScrapingStateManager:
             json.dump(state, f, indent=2)
     
     def load_state(self) -> Dict[str, Any]:
-        """Charge"""
         file_path = os.path.join(self.state_dir, self.state_file)
         if os.path.exists(file_path):
             with open(file_path, 'r') as f:
@@ -31,7 +29,6 @@ class ScrapingStateManager:
         return {}
     
     def clear_state(self):
-        """Efface"""
         file_path = os.path.join(self.state_dir, self.state_file)
         if os.path.exists(file_path):
             os.remove(file_path)

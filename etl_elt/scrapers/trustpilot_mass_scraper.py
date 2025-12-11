@@ -51,11 +51,11 @@ class TrustpilotMassScraper:
         """Extraction NEXT_DATA"""
         try:
             next_data_script = soup.find('script', id='__NEXT_DATA__')
-            if not next_data_script or not next_data_script.string:
+            if not next_data_script:
                 self.logger.warning("Balise __NEXT_DATA__ non trouvée")
                 return {'reviews': [], 'company_info': {}}
             
-            data = json.loads(str(next_data_script.string))
+            data = json.loads(next_data_script.string)
             return self.parse_next_data(data, company_name)
             
         except Exception as e:

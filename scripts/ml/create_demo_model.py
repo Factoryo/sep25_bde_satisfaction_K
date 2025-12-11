@@ -33,12 +33,12 @@ sample_labels = [
 ]
 
 # TF-IDF
-print("Création du vectoriseur TF-IDF...")
+print("Création du vecto TF-IDF...")
 vectorizer = TfidfVectorizer(max_features=100, ngram_range=(1, 2))
 X = vectorizer.fit_transform(sample_texts)
 
 # Modèle
-print("Entraînement du modèle...")
+print("Entraînement du modèle")
 model = LogisticRegression(random_state=42, max_iter=1000)
 model.fit(X, sample_labels)
 
@@ -47,7 +47,7 @@ model_path = models_dir / "sentiment_model_best.pkl"
 joblib.dump(model, model_path)
 print(f"Modèle sauvégardé: {model_path}")
 
-# Save vectorizer
+# Save vecto
 vectorizer_path = models_dir / "tfidf_vectorizer.pkl"
 joblib.dump(vectorizer, vectorizer_path)
 print(f"Vectoriseur sauvégardé: {vectorizer_path}")
@@ -75,7 +75,6 @@ metadata = {
         "max_features": 100,
         "ngram_range": [1, 2]
     },
-    "note": "MODÈLE DE DÉMONSTRATION - Entraîné sur données minimales pour tests"
 }
 
 metadata_path = models_dir / "models_metadata.json"
@@ -84,7 +83,7 @@ with open(metadata_path, 'w', encoding='utf-8') as f:
 print(f"Métadonnées sauvégardées: {metadata_path}")
 
 print("\n" + "="*60)
-print("MODÈLE DE DÉMONSTRATION CRÉÉ AVEC SUCCÈS")
+print("Modèle de démo créé")
 print("="*60)
 print("  uvicorn api.ml_api:app --port 8001")
 print("="*60)

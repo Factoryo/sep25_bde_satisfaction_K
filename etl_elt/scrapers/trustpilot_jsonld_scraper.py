@@ -45,12 +45,10 @@ class TrustpilotJSONLDScraper:
         }
         
         try:
-            # Score
             trustscore_element = soup.select_one('span.CDS_Typography_heading-l__dd9b51')
             if trustscore_element:
                 company_info['trustscore'] = trustscore_element.get_text(strip=True)
             
-            # Avis
             reviews_element = soup.find('span', string=re.compile(r'reviews', re.I))
             if reviews_element:
                 text = reviews_element.get_text(strip=True)

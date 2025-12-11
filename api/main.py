@@ -24,7 +24,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Cache données
 _reviews_cache = None
 _companies_cache = None
 
@@ -45,13 +44,11 @@ def load_reviews_from_files() -> List[dict]:
     
     for json_file in data_dir.glob("*_reviews.json"):
         try:
-            # Extrait nom entreprise du fichier
             company_name = json_file.stem.replace('_reviews', '').replace('_', '.')
             
             with open(json_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 
-                # Prend le nom depuis company_info si dispo
                 if 'company_info' in data and data['company_info'].get('name'):
                     company_name = data['company_info']['name']
                 
@@ -91,7 +88,6 @@ class SatisfactionStats(BaseModel):
 
 @app.get("/")
 async def root():
-    """Accueil"""
     return {
         "message": "Welcome to Supply Chain Satisfaction API",
         "version": "1.0.0",
@@ -100,12 +96,10 @@ async def root():
 
 @app.get("/health")
 async def health_check():
-    """Santé"""
     return {"status": "healthy"}
 
 @app.get("/api/stats", response_model=SatisfactionStats)
 async def get_stats():
-    """Statistiques"""
     reviews = load_reviews_from_files()
     
     if not reviews:
@@ -130,7 +124,6 @@ async def get_stats():
 
 @app.get("/api/reviews", response_model=List[Review])
 async def get_reviews(limit: int = 10, offset: int = 0, company: Optional[str] = None, shuffle: bool = True):
-    """Liste avis"""
     reviews = load_reviews_from_files().copy()
     
     if company:
@@ -148,7 +141,6 @@ async def create_review(review: Review):
 
 @app.get("/api/companies")
 async def get_companies():
-    """Liste entreprises"""
     reviews = load_reviews_from_files()
     company_counts = {}
     

@@ -28,14 +28,14 @@ def monitor_progress():
         status = progress.get('status', 'unknown')
         reviews = progress.get('total_reviews', 0)
         
-        status_icon = "✅" if status == 'completed' else "🔄"
+        status_icon = "[OK]" if status == 'completed' else "[...]"
         
         print(f"{status_icon} {company}:")
-        print(f"   📝 Reviews: {reviews}")
-        print(f"   📊 Statut: {status}")
+        print(f"   Reviews: {reviews}")
+        print(f"   Statut: {status}")
         if 'last_update' in progress:
             last_update = datetime.fromisoformat(progress['last_update'])
-            print(f"   ⏰ Dernière mise à jour: {last_update.strftime('%H:%M:%S')}")
+            print(f"   Dernière mise à jour: {last_update.strftime('%H:%M:%S')}")
         print()
         
         total_reviews += reviews

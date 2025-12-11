@@ -234,7 +234,7 @@ def main():
     # Fichiers JSON
     json_files = list(data_dir.glob("*_reviews.json")) + list(data_dir.glob("*_test.json"))
     if not json_files:
-        print(f"✗ Aucun fichier *_reviews.json ou *_test.json trouvé dans {data_dir}")
+        print(f"Aucun fichier *_reviews.json ou *_test.json trouvé dans {data_dir}")
         print(f"  Veuillez d'abord scraper des données")
         return 1
     
